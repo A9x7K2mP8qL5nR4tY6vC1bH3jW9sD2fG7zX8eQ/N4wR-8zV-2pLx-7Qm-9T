@@ -1,0 +1,1780 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local CoreGui = game:GetService("CoreGui")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local DisplayName = LocalPlayer.DisplayName
+
+local Theme = {
+	Background = Color3.fromRGB(12, 8, 18),
+	HeaderBackground = Color3.fromRGB(10, 6, 16),
+	SidebarBackground = Color3.fromRGB(8, 4, 14),
+	ButtonBackground = Color3.fromRGB(24, 14, 36),
+	InputBackground = Color3.fromRGB(18, 10, 28),
+	Accent = Color3.fromRGB(190, 40, 255),
+	AccentDark = Color3.fromRGB(45, 12, 70),
+	TextPrimary = Color3.fromRGB(255, 255, 255),
+	TextSecondary = Color3.fromRGB(190, 160, 220),
+	TextMuted = Color3.fromRGB(140, 110, 170),
+	Divider = Color3.fromRGB(55, 30, 80),
+	Font = Enum.Font.GothamBold,
+	FontBody = Enum.Font.GothamBold
+}
+
+local CornerRadius = 10
+local SmallCorner = 8
+local MinWidth = 480
+local MinHeight = 320
+local HeaderHeight = 38
+local FooterHeight = 48
+local TimerHeight = 22
+local ContentSplit = 0.58
+
+local function Create(className, properties)
+	local instance = Instance.new(className)
+	for property, value in pairs(properties or {}) do
+		instance[property] = value
+	end
+	return instance
+end
+
+local function AddCorner(parent, radius)
+	return Create("UICorner", {
+		Parent = parent,
+		CornerRadius = UDim.new(0, radius or SmallCorner)
+	})
+end
+
+local function AddStroke(parent, color, thickness)
+	return Create("UIStroke", {
+		Parent = parent,
+		Color = color or Theme.Divider,
+		Thickness = thickness or 1
+	})
+end
+
+local function FormatTime(seconds)
+	seconds = math.max(0, math.floor(seconds))
+	local days = math.floor(seconds / 86400)
+	local hours = math.floor((seconds % 86400) / 3600)
+	local minutes = math.floor((seconds % 3600) / 60)
+	local secs = seconds % 60
+	return string.format("%dD / %dH / %dM / %dS", days, hours, minutes, secs)
+end
+
+local Library = {}
+Library.__index = Library
+
+function Library.new(config)
+	config = config or {}
+	local self = setmetatable({}, Library)
+	self.Tabs = {}
+	self.TabOffsets = {}
+	self.SelectedIndex = 1
+	local screenGui = Create("ScreenGui", {
+		Name = config.Name or "a",
+		ResetOnSpawn = false,
+		Parent = CoreGui,
+		ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	})
+	self.ScreenGui = screenGui
+	local toggleButton = Create("TextButton", {
+		Parent = screenGui,
+		Size = UDim2.new(0, 42, 0, 42),
+		Position = UDim2.new(0.04, 0, 0.12, 0),
+		BackgroundColor3 = Theme.HeaderBackground,
+		Text = "",
+		AutoButtonColor = false,
+		BorderSizePixel = 0
+	})
+	AddCorner(toggleButton, 12)
+	AddStroke(toggleButton, Theme.Accent, 1.5)
+	Create("TextLabel", {
+		Parent = toggleButton,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Text = config.ToggleLabel or "b",
+		Font = Theme.Font,
+		TextSize = 14,
+		TextColor3 = Theme.Accent,
+		BorderSizePixel = 0
+	})
+	local draggingToggle, dragStart, startPos, wasDragged = false, nil, nil, false
+	toggleButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			draggingToggle = true
+			wasDragged = false
+			dragStart = input.Position
+			startPos = toggleButton.Position
+		end
+	end)
+	toggleButton.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			draggingToggle = false
+		end
+	end)
+	local width  = config.Width or 620
+	local height = config.Height or 420
+	local panel = Create("Frame", {
+		Parent = screenGui,
+		Size = UDim2.new(0, width, 0, height),
+		Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2),
+		BackgroundColor3 = Theme.Background,
+		BorderSizePixel = 0,
+		Active = true,
+		ClipsDescendants = true,
+		Visible = true
+	})
+	AddCorner(panel, CornerRadius)
+	AddStroke(panel, Color3.fromRGB(70, 30, 110), 1)
+	self.Panel = panel
+	local header = Create("Frame", {
+		Parent = panel,
+		Size = UDim2.new(1, 0, 0, HeaderHeight),
+		BackgroundColor3 = Theme.HeaderBackground,
+		BorderSizePixel = 0
+	})
+	AddCorner(header, CornerRadius)
+	Create("TextLabel", {
+		Parent = header,
+		Size = UDim2.new(1, -20, 1, 0),
+		Position = UDim2.new(0, 12, 0, 0),
+		BackgroundTransparency = 1,
+		Text = config.Title or "d",
+		TextColor3 = Theme.TextPrimary,
+		Font = Theme.Font,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BorderSizePixel = 0
+	})
+	local sidebar = Create("Frame", {
+		Parent = panel,
+		Size = UDim2.new(0, 130, 1, -(HeaderHeight + FooterHeight + TimerHeight)),
+		Position = UDim2.new(0, 0, 0, HeaderHeight),
+		BackgroundColor3 = Theme.SidebarBackground,
+		BorderSizePixel = 0
+	})
+	local indicator = Create("Frame", {
+		Parent = sidebar,
+		Size = UDim2.new(0, 3, 0, 28),
+		Position = UDim2.new(0, 0, 0, 10),
+		BackgroundColor3 = Theme.Accent,
+		BorderSizePixel = 0
+	})
+	AddCorner(indicator, 2)
+	self.Indicator = indicator
+	local tabList = Create("ScrollingFrame", {
+		Parent = sidebar,
+		Size = UDim2.new(1, -4, 1, 0),
+		Position = UDim2.new(0, 4, 0, 0),
+		BackgroundTransparency = 1,
+		ScrollBarThickness = 0,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		BorderSizePixel = 0
+	})
+	Create("UIListLayout", {Parent = tabList, Padding = UDim.new(0, 4)})
+	Create("UIPadding", {Parent = tabList, PaddingTop = UDim.new(0, 8)})
+	self.TabList = tabList
+	local content = Create("Frame", {
+		Parent = panel,
+		Size = UDim2.new(1, -135, 1, -(HeaderHeight + FooterHeight + TimerHeight)),
+		Position = UDim2.new(0, 135, 0, HeaderHeight),
+		BackgroundTransparency = 1,
+		BorderSizePixel = 0
+	})
+	self.Content = content
+	local footer = Create("Frame", {
+		Parent = panel,
+		Size = UDim2.new(1, 0, 0, FooterHeight),
+		Position = UDim2.new(0, 0, 1, -(FooterHeight + TimerHeight)),
+		BackgroundColor3 = Theme.HeaderBackground,
+		BorderSizePixel = 0
+	})
+	local avatar = Create("ImageLabel", {
+		Parent = footer,
+		Size = UDim2.new(0, 32, 0, 32),
+		Position = UDim2.new(0, 12, 0.5, -16),
+		BackgroundColor3 = Theme.InputBackground,
+		Image = config.AvatarImage or "",
+		BorderSizePixel = 0
+	})
+	AddCorner(avatar, 16)
+	AddStroke(avatar, Theme.Divider, 1)
+	Create("TextLabel", {
+		Parent = footer,
+		Size = UDim2.new(1, -60, 1, 0),
+		Position = UDim2.new(0, 52, 0, 0),
+		BackgroundTransparency = 1,
+		Text = config.FooterText or "c",
+		TextColor3 = Theme.TextPrimary,
+		Font = Theme.Font,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BorderSizePixel = 0
+	})
+	local timerBar = Create("Frame", {
+		Parent = panel,
+		Size = UDim2.new(1, 0, 0, TimerHeight),
+		Position = UDim2.new(0, 0, 1, -TimerHeight),
+		BackgroundColor3 = Color3.fromRGB(8, 4, 14),
+		BorderSizePixel = 0
+	})
+	AddCorner(timerBar, CornerRadius)
+	local timerLabel = Create("TextLabel", {
+		Parent = timerBar,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Text = "",
+		TextColor3 = Theme.Accent,
+		Font = Theme.FontBody,
+		TextSize = 14,
+		BorderSizePixel = 0
+	})
+	self.TimerLabel = timerLabel
+	local startTime = os.clock()
+	timerLabel.Text = FormatTime(0)
+	local accumulator = 0
+	RunService.Heartbeat:Connect(function(dt)
+		accumulator += dt
+		if accumulator >= 1 then
+			accumulator -= 1
+			timerLabel.Text = FormatTime(os.clock() - startTime)
+		end
+	end)
+	local resizeHandle = Create("TextButton", {
+		Parent = panel,
+		Size = UDim2.new(0, 16, 0, 16),
+		Position = UDim2.new(1, -16, 1, -16),
+		BackgroundTransparency = 1,
+		AutoButtonColor = false,
+		Text = "",
+		ZIndex = 10,
+		BorderSizePixel = 0
+	})
+	local panelVisible = true
+	toggleButton.MouseButton1Click:Connect(function()
+		if wasDragged then return end
+		panelVisible = not panelVisible
+		panel.Visible = panelVisible
+	end)
+	local draggingPanel, panelDragStart, panelStartPos = false, nil, nil
+	local resizing, resizeStart, startSize = false, nil, nil
+	local function onDragStart(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			draggingPanel = true
+			panelDragStart = input.Position
+			panelStartPos = panel.Position
+		end
+	end
+	local function onDragEnd(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			draggingPanel = false
+		end
+	end
+	header.InputBegan:Connect(onDragStart)
+	header.InputEnded:Connect(onDragEnd)
+	sidebar.InputBegan:Connect(onDragStart)
+	sidebar.InputEnded:Connect(onDragEnd)
+	tabList.InputBegan:Connect(onDragStart)
+	tabList.InputEnded:Connect(onDragEnd)
+	content.InputBegan:Connect(onDragStart)
+	content.InputEnded:Connect(onDragEnd)
+	footer.InputBegan:Connect(onDragStart)
+	footer.InputEnded:Connect(onDragEnd)
+	timerBar.InputBegan:Connect(onDragStart)
+	timerBar.InputEnded:Connect(onDragEnd)
+	resizeHandle.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			resizing = true
+			resizeStart = input.Position
+			startSize = panel.Size
+		end
+	end)
+	resizeHandle.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			resizing = false
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if input.UserInputType ~= Enum.UserInputType.MouseMovement and input.UserInputType ~= Enum.UserInputType.Touch then return end
+		if draggingPanel then
+			local delta = input.Position - panelDragStart
+			panel.Position = UDim2.new(panelStartPos.X.Scale, panelStartPos.X.Offset + delta.X, panelStartPos.Y.Scale, panelStartPos.Y.Offset + delta.Y)
+		elseif resizing then
+			local delta = input.Position - resizeStart
+			local newWidth  = math.max(MinWidth, startSize.X.Offset + delta.X)
+			local newHeight = math.max(MinHeight, startSize.Y.Offset + delta.Y)
+			panel.Size = UDim2.new(startSize.X.Scale, newWidth, startSize.Y.Scale, newHeight)
+		elseif draggingToggle then
+			local delta = input.Position - dragStart
+			if math.abs(delta.X) > 3 or math.abs(delta.Y) > 3 then wasDragged = true end
+			toggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+	end)
+	self._OnDragStart = onDragStart
+	self._OnDragEnd = onDragEnd
+	return self
+end
+
+local Tab = {}
+Tab.__index = Tab
+
+function Library:AddTab(name)
+	local index = #self.Tabs + 1
+	local button = Create("TextButton", {
+		Parent = self.TabList,
+		Size = UDim2.new(1, -8, 0, 30),
+		BackgroundColor3 = Theme.ButtonBackground,
+		BackgroundTransparency = 1,
+		Text = " " .. name,
+		TextColor3 = Theme.TextSecondary,
+		Font = Theme.FontBody,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		AutoButtonColor = false,
+		BorderSizePixel = 0
+	})
+	AddCorner(button, 6)
+	button.MouseEnter:Connect(function()
+		if button.BackgroundTransparency == 1 then
+			TweenService:Create(button, TweenInfo.new(0.12), {
+				BackgroundTransparency = 0,
+				BackgroundColor3 = Color3.fromRGB(35, 18, 55)
+			}):Play()
+		end
+	end)
+	button.MouseLeave:Connect(function()
+		if button.TextColor3 ~= Theme.TextPrimary then
+			TweenService:Create(button, TweenInfo.new(0.12), {BackgroundTransparency = 1}):Play()
+		end
+	end)
+	local page = Create("Frame", {
+		Parent = self.Content,
+		Size = UDim2.new(1, 0, 1, 0),
+		BackgroundTransparency = 1,
+		Visible = index == 1,
+		BorderSizePixel = 0
+	})
+	local main = Create("ScrollingFrame", {
+		Parent = page,
+		Size = UDim2.new(ContentSplit, -6, 1, 0),
+		BackgroundTransparency = 1,
+		ScrollBarThickness = 3,
+		ScrollBarImageColor3 = Theme.Accent,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		BorderSizePixel = 0
+	})
+	Create("UIListLayout", {Parent = main, Padding = UDim.new(0, 7)})
+	Create("UIPadding", {
+		Parent = main,
+		PaddingTop = UDim.new(0, 10),
+		PaddingLeft = UDim.new(0, 10),
+		PaddingRight = UDim.new(0, 8)
+	})
+	local side = Create("ScrollingFrame", {
+		Parent = page,
+		Size = UDim2.new(1 - ContentSplit, -6, 1, 0),
+		Position = UDim2.new(ContentSplit, 6, 0, 0),
+		BackgroundTransparency = 1,
+		ScrollBarThickness = 3,
+		ScrollBarImageColor3 = Theme.Accent,
+		AutomaticCanvasSize = Enum.AutomaticSize.Y,
+		CanvasSize = UDim2.new(0, 0, 0, 0),
+		BorderSizePixel = 0
+	})
+	Create("UIListLayout", {Parent = side, Padding = UDim.new(0, 7)})
+	Create("UIPadding", {
+		Parent = side,
+		PaddingTop = UDim.new(0, 10),
+		PaddingLeft = UDim.new(0, 8),
+		PaddingRight = UDim.new(0, 10)
+	})
+	if self._OnDragStart and self._OnDragEnd then
+		main.InputBegan:Connect(self._OnDragStart)
+		main.InputEnded:Connect(self._OnDragEnd)
+		side.InputBegan:Connect(self._OnDragStart)
+		side.InputEnded:Connect(self._OnDragEnd)
+		page.InputBegan:Connect(self._OnDragStart)
+		page.InputEnded:Connect(self._OnDragEnd)
+	end
+	table.insert(self.Tabs, {Button = button, Page = page})
+	table.insert(self.TabOffsets, 10 + (index - 1) * 34)
+	button.MouseButton1Click:Connect(function()
+		self:SelectTab(index)
+	end)
+	return setmetatable({Page = page, Main = main, Side = side, Library = self}, Tab)
+end
+
+function Library:SelectTab(index)
+	self.SelectedIndex = index
+	for i, tab in ipairs(self.Tabs) do
+		tab.Page.Visible = (i == index)
+		if i == index then
+			TweenService:Create(tab.Button, TweenInfo.new(0.15), {
+				BackgroundTransparency = 0,
+				BackgroundColor3 = Theme.AccentDark,
+				TextColor3 = Theme.TextPrimary
+			}):Play()
+		else
+			TweenService:Create(tab.Button, TweenInfo.new(0.15), {
+				BackgroundTransparency = 1,
+				TextColor3 = Theme.TextSecondary
+			}):Play()
+		end
+	end
+	TweenService:Create(self.Indicator, TweenInfo.new(0.18), {
+		Position = UDim2.new(0, 0, 0, self.TabOffsets[index] or 10)
+	}):Play()
+end
+
+function Tab:AddSectionLabel(text, useSide)
+	local parent = useSide and self.Side or self.Main
+	return Create("TextLabel", {
+		Parent = parent,
+		Size = UDim2.new(1, 0, 0, 20),
+		BackgroundTransparency = 1,
+		Text = text,
+		TextColor3 = Theme.Accent,
+		Font = Theme.Font,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BorderSizePixel = 0
+	})
+end
+
+function Tab:AddButton(text, callback, useSide)
+	local parent = useSide and self.Side or self.Main
+	local button = Create("TextButton", {
+		Parent = parent,
+		Size = UDim2.new(1, 0, 0, 34),
+		BackgroundColor3 = Theme.ButtonBackground,
+		Text = text,
+		TextColor3 = Theme.TextPrimary,
+		Font = Theme.FontBody,
+		TextSize = 14,
+		AutoButtonColor = false,
+		BorderSizePixel = 0
+	})
+	AddCorner(button, 7)
+	AddStroke(button, Color3.fromRGB(70, 30, 110), 1)
+	button.MouseEnter:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.12), {BackgroundColor3 = Color3.fromRGB(40, 20, 65)}):Play()
+	end)
+	button.MouseLeave:Connect(function()
+		TweenService:Create(button, TweenInfo.new(0.12), {BackgroundColor3 = Theme.ButtonBackground}):Play()
+	end)
+	button.Activated:Connect(function()
+		if callback then callback() end
+	end)
+	return button
+end
+
+function Tab:AddToggle(text, callback, useSide)
+	local parent = useSide and self.Side or self.Main
+	local button = Create("TextButton", {
+		Parent = parent,
+		Size = UDim2.new(1, 0, 0, 34),
+		BackgroundColor3 = Theme.ButtonBackground,
+		Text = "",
+		AutoButtonColor = false,
+		BorderSizePixel = 0
+	})
+	AddCorner(button, 7)
+	AddStroke(button, Color3.fromRGB(70, 30, 110), 1)
+	Create("TextLabel", {
+		Parent = button,
+		Size = UDim2.new(1, -55, 1, 0),
+		Position = UDim2.new(0, 12, 0, 0),
+		BackgroundTransparency = 1,
+		Text = text,
+		TextColor3 = Theme.TextPrimary,
+		Font = Theme.FontBody,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BorderSizePixel = 0
+	})
+	local track = Create("Frame", {
+		Parent = button,
+		Size = UDim2.new(0, 36, 0, 18),
+		Position = UDim2.new(1, -48, 0.5, -9),
+		BackgroundColor3 = Color3.fromRGB(50, 30, 70),
+		BorderSizePixel = 0
+	})
+	AddCorner(track, 9)
+	local knob = Create("Frame", {
+		Parent = track,
+		Size = UDim2.new(0, 14, 0, 14),
+		Position = UDim2.new(0, 2, 0.5, -7),
+		BackgroundColor3 = Color3.fromRGB(220, 200, 255),
+		BorderSizePixel = 0
+	})
+	AddCorner(knob, 7)
+	local enabled = false
+	button.Activated:Connect(function()
+		enabled = not enabled
+		if enabled then
+			TweenService:Create(track, TweenInfo.new(0.15), {BackgroundColor3 = Theme.Accent}):Play()
+			TweenService:Create(knob, TweenInfo.new(0.15), {
+				Position = UDim2.new(1, -16, 0.5, -7),
+				BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			}):Play()
+		else
+			TweenService:Create(track, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(50, 30, 70)}):Play()
+			TweenService:Create(knob, TweenInfo.new(0.15), {
+				Position = UDim2.new(0, 2, 0.5, -7),
+				BackgroundColor3 = Color3.fromRGB(220, 200, 255)
+			}):Play()
+		end
+		if callback then callback(enabled) end
+	end)
+	return button
+end
+
+function Tab:AddTextbox(label, placeholder, callback, useSide)
+	local parent = useSide and self.Side or self.Main
+	local container = Create("Frame", {
+		Parent = parent,
+		Size = UDim2.new(1, 0, 0, 34),
+		BackgroundColor3 = Theme.ButtonBackground,
+		BorderSizePixel = 0
+	})
+	AddCorner(container, 7)
+	AddStroke(container, Color3.fromRGB(70, 30, 110), 1)
+	Create("TextLabel", {
+		Parent = container,
+		Size = UDim2.new(0.38, 0, 1, 0),
+		Position = UDim2.new(0, 12, 0, 0),
+		BackgroundTransparency = 1,
+		Text = label,
+		TextColor3 = Theme.TextPrimary,
+		Font = Theme.FontBody,
+		TextSize = 14,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BorderSizePixel = 0
+	})
+	local textbox = Create("TextBox", {
+		Parent = container,
+		Size = UDim2.new(0.55, -10, 0, 24),
+		Position = UDim2.new(0.42, 0, 0.5, -12),
+		BackgroundColor3 = Theme.InputBackground,
+		TextColor3 = Theme.TextPrimary,
+		PlaceholderText = placeholder or "",
+		PlaceholderColor3 = Theme.TextMuted,
+		Font = Theme.FontBody,
+		TextSize = 14,
+		Text = "",
+		ClearTextOnFocus = false,
+		TextXAlignment = Enum.TextXAlignment.Left,
+		BorderSizePixel = 0
+	})
+	AddCorner(textbox, 6)
+	Create("UIPadding", {Parent = textbox, PaddingLeft = UDim.new(0, 8)})
+	textbox.FocusLost:Connect(function(enter)
+		if callback then callback(textbox.Text, enter) end
+	end)
+	return textbox
+end
+
+_G.tpListedPlayers    = _G.tpListedPlayers or {}
+_G.blacklistedPlayers = _G.blacklistedPlayers or {}
+_G.watchlistedPlayers = _G.watchlistedPlayers or {}
+
+local TpListFile    = "TpList_Players.txt"
+local BlacklistFile = "Blacklist_Players.txt"
+local WatchlistFile = "Watchlist_Clans.txt"
+
+local function SaveList(file, list)
+	writefile(file, table.concat(list, "\n"))
+end
+
+local function LoadList(file)
+	local result = {}
+	if isfile(file) then
+		local content = readfile(file)
+		for line in content:gmatch("[^\r\n]+") do
+			local trimmed = line:match("^%s*(.-)%s*$")
+			if trimmed and trimmed ~= "" then
+				table.insert(result, trimmed)
+			end
+		end
+	end
+	return result
+end
+
+_G.tpListedPlayers = LoadList(TpListFile)
+_G.blacklistedPlayers = LoadList(BlacklistFile)
+_G.watchlistedPlayers = LoadList(WatchlistFile)
+
+local function IsInTpList(player)
+	for _, name in ipairs(_G.tpListedPlayers) do
+		if name:lower() == player.Name:lower() then return true end
+	end
+	return false
+end
+
+local function IsBlacklisted(player)
+	for _, name in ipairs(_G.blacklistedPlayers) do
+		if name:lower() == player.Name:lower() then return true end
+	end
+	return false
+end
+
+local function IsWatchlisted(player)
+	local nameLower = player.Name:lower()
+	local displayLower = player.DisplayName:lower()
+	for _, word in ipairs(_G.watchlistedPlayers) do
+		local wordLower = word:lower()
+		if nameLower:find(wordLower, 1, true) or displayLower:find(wordLower, 1, true) then
+			return true
+		end
+	end
+	return false
+end
+
+local function GetCharacter()
+	if not LocalPlayer.Character then
+		repeat task.wait() until LocalPlayer.Character
+	end
+	return LocalPlayer.Character
+end
+
+local function IsAlive(player)
+	return player
+		and player.Character
+		and player.Character:FindFirstChild("HumanoidRootPart")
+		and player.Character:FindFirstChild("Humanoid")
+		and player.Character.Humanoid.Health > 0
+end
+
+local function DoPunch()
+	for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
+		if tool.Name == "Punch" and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+			LocalPlayer.Character.Humanoid:EquipTool(tool)
+		end
+	end
+	if LocalPlayer:FindFirstChild("muscleEvent") then
+		LocalPlayer.muscleEvent:FireServer("punch", "leftHand")
+		LocalPlayer.muscleEvent:FireServer("punch", "rightHand")
+	end
+end
+
+local function KillPlayer(player)
+	if not IsAlive(player) or not GetCharacter():FindFirstChild("LeftHand") then return end
+	pcall(function()
+		firetouchinterest(player.Character.HumanoidRootPart, GetCharacter().LeftHand, 0)
+		firetouchinterest(player.Character.HumanoidRootPart, GetCharacter().LeftHand, 1)
+		DoPunch()
+	end)
+end
+
+local function FormatNumber(number)
+	if number >= 1e15 then
+		return string.format("%.1fqa", number / 1e15)
+	elseif number >= 1e12 then
+		return string.format("%.1ft", number / 1e12)
+	elseif number >= 1e9 then
+		return string.format("%.1fb", number / 1e9)
+	elseif number >= 1e6 then
+		return string.format("%.1fm", number / 1e6)
+	elseif number >= 1e3 then
+		return string.format("%.1fk", number / 1e3)
+	else
+		if number == math.floor(number) then
+			return tostring(math.floor(number))
+		else
+			return string.format("%.1f", number)
+		end
+	end
+end
+
+local function CommaNumber(number)
+	local str = tostring(math.floor(number))
+	local k
+	while true do
+		str, k = str:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
+		if k == 0 then break end
+	end
+	return str
+end
+
+local function GetHealth(player)
+	if not player then return 0 end
+	local durability = player:FindFirstChild("Durability")
+		or (player:FindFirstChild("leaderstats") and player.leaderstats:FindFirstChild("Durability"))
+	if not durability then return 0 end
+
+	local multiplier = 1
+	if player:FindFirstChild("ultimatesFolder") and player.ultimatesFolder:FindFirstChild("Infernal Health") then
+		multiplier = multiplier + 0.15 * (player.ultimatesFolder["Infernal Health"].Value or 0)
+	end
+	if player:FindFirstChild("equippedPets") then
+		for _, pet in ipairs(player.equippedPets:GetChildren()) do
+			if pet:IsA("ObjectValue") and pet.Value then
+				local petName = string.lower(pet.Value.Name)
+				if petName:match("mighty") and petName:match("monster") then multiplier = multiplier + 0.5 end
+				if petName:match("small") and petName:match("fry") then multiplier = multiplier + 0.25 end
+			end
+		end
+	end
+	return durability.Value * multiplier
+end
+
+local function GetDamage(player)
+	if not player or not player:FindFirstChild("leaderstats") or not player.leaderstats:FindFirstChild("Strength") then
+		return 0
+	end
+	local base = player.leaderstats.Strength.Value * (1 / 15)
+	local multiplier = 1
+	if player:FindFirstChild("ultimatesFolder") and player.ultimatesFolder:FindFirstChild("Demon Damage") then
+		multiplier = multiplier + 0.1 * (player.ultimatesFolder["Demon Damage"].Value or 0)
+	end
+	if player:FindFirstChild("equippedPets") then
+		for _, pet in ipairs(player.equippedPets:GetChildren()) do
+			if pet:IsA("ObjectValue") and pet.Value then
+				local petName = string.lower(pet.Value.Name)
+				if petName:match("wild") and petName:match("wizard") then multiplier = multiplier + 0.5 end
+				if petName:match("chaos") and petName:match("sorcerer") then multiplier = multiplier + 0.25 end
+			end
+		end
+	end
+	return base * multiplier
+end
+
+local function GetLocalRoot()
+	local char = GetCharacter()
+	return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+local PetsFolder = LocalPlayer:WaitForChild("petsFolder"):WaitForChild("Unique")
+local EquipPetEvent = ReplicatedStorage:WaitForChild("rEvents"):WaitForChild("equipPetEvent")
+
+local function UnequipAll()
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		EquipPetEvent:FireServer("unequipPet", pet)
+	end
+end
+
+local Hub = Library.new({
+	Title = DisplayName .. " Is Tree's BBG",
+	FooterText = "Made By Tree",
+	AvatarImage = "rbxthumb://type=AvatarHeadShot&id=" .. LocalPlayer.UserId .. "&w=150&h=150",
+	Width = 620,
+	Height = 420,
+	ToggleLabel = "T"
+})
+
+local TeleportTab = Hub:AddTab("Teleporting")
+local KillTab = Hub:AddTab("Killing")
+local SpectateTab = Hub:AddTab("Spectating")
+local MiscTab = Hub:AddTab("Misc")
+local StatsTab = Hub:AddTab("Stats")
+
+TeleportTab:AddButton("Equip Wild Wizards", function()
+	UnequipAll()
+	local count = 0
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		if pet.Name == "Wild Wizard" and count < 8 then
+			EquipPetEvent:FireServer("equipPet", pet)
+			count += 1
+		end
+	end
+end)
+
+TeleportTab:AddButton("Equip Mighty Monsters", function()
+	UnequipAll()
+	local count = 0
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		if pet.Name == "Mighty Monster" and count < 8 then
+			EquipPetEvent:FireServer("equipPet", pet)
+			count += 1
+		end
+	end
+end)
+
+local tpConnection
+local tpMode = nil
+local lastPetSwap = 0
+local petToggle = 0
+
+local function SwapPack()
+	local now = tick()
+	if now - lastPetSwap < 0.15 then return end
+	lastPetSwap = now
+	if petToggle == 0 then
+		UnequipAll()
+		local count = 0
+		for _, pet in ipairs(PetsFolder:GetChildren()) do
+			if pet.Name == "Wild Wizard" and count < 8 then
+				EquipPetEvent:FireServer("equipPet", pet)
+				count += 1
+			end
+		end
+		petToggle = 1
+	else
+		UnequipAll()
+		local count = 0
+		for _, pet in ipairs(PetsFolder:GetChildren()) do
+			if pet.Name == "Mighty Monster" and count < 8 then
+				EquipPetEvent:FireServer("equipPet", pet)
+				count += 1
+			end
+		end
+		petToggle = 0
+	end
+end
+
+local function EquipMighty()
+	local now = tick()
+	if now - lastPetSwap < 0.15 then return end
+	lastPetSwap = now
+	UnequipAll()
+	local count = 0
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		if pet.Name == "Mighty Monster" and count < 8 then
+			EquipPetEvent:FireServer("equipPet", pet)
+			count += 1
+		end
+	end
+end
+
+local function StartKillTp(mode)
+	tpMode = mode
+	if tpConnection then
+		tpConnection:Disconnect()
+		tpConnection = nil
+	end
+	tpConnection = RunService.Heartbeat:Connect(function()
+		if not tpMode then return end
+		if tpMode == "pack" then
+			SwapPack()
+		elseif tpMode == "hp" then
+			EquipMighty()
+		end
+		local char = GetCharacter()
+		local hrp = char and char:FindFirstChild("HumanoidRootPart")
+		if not hrp then return end
+		for _, name in ipairs(_G.tpListedPlayers) do
+			local target = nil
+			for _, player in ipairs(Players:GetPlayers()) do
+				if player.Name:lower() == name:lower() then
+					target = player
+					break
+				end
+			end
+			if target and IsAlive(target) then
+				local oldCFrame = hrp.CFrame
+				hrp.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+				DoPunch()
+				local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					humanoid.Died:Once(function()
+						task.wait(0.01)
+						if hrp and hrp.Parent then
+							hrp.CFrame = oldCFrame
+						end
+					end)
+				end
+				break
+			end
+		end
+	end)
+end
+
+local function StopKillTp()
+	tpMode = nil
+	if tpConnection then
+		tpConnection:Disconnect()
+		tpConnection = nil
+	end
+end
+
+TeleportTab:AddToggle("Kill Tp + Pack Spam", function(state)
+	if state then
+		StartKillTp("pack")
+	else
+		if tpMode == "pack" then StopKillTp() end
+	end
+end)
+
+TeleportTab:AddToggle("Kill Tp + Mighty Monster Spam", function(state)
+	if state then
+		StartKillTp("hp")
+	else
+		if tpMode == "hp" then StopKillTp() end
+	end
+end)
+
+TeleportTab:AddToggle("Kill Tp", function(state)
+	if state then
+		tpMode = "none"
+		if tpConnection then tpConnection:Disconnect() end
+		tpConnection = RunService.Heartbeat:Connect(function()
+			if tpMode ~= "none" then return end
+			local char = GetCharacter()
+			local hrp = char and char:FindFirstChild("HumanoidRootPart")
+			if not hrp then return end
+			for _, name in ipairs(_G.tpListedPlayers) do
+				local target = nil
+				for _, player in ipairs(Players:GetPlayers()) do
+					if player.Name:lower() == name:lower() then
+						target = player
+						break
+					end
+				end
+				if target and IsAlive(target) then
+					local oldCFrame = hrp.CFrame
+					hrp.CFrame = target.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+					DoPunch()
+					local humanoid = target.Character:FindFirstChildOfClass("Humanoid")
+					if humanoid then
+						humanoid.Died:Once(function()
+							task.wait(0.01)
+							if hrp and hrp.Parent then
+								hrp.CFrame = oldCFrame
+							end
+						end)
+					end
+					break
+				end
+			end
+		end)
+	else
+		if tpMode == "none" then StopKillTp() end
+	end
+end)
+
+local tpListLabel = TeleportTab:AddSectionLabel("TpList: None")
+TeleportTab:AddButton("Clear TpList", function()
+	_G.tpListedPlayers = {}
+	SaveList(TpListFile, _G.tpListedPlayers)
+end)
+
+task.spawn(function()
+	while true do
+		tpListLabel.Text = #_G.tpListedPlayers == 0 and "TpList: None" or "TpList: " .. table.concat(_G.tpListedPlayers, ", ")
+		task.wait(0.01)
+	end
+end)
+
+KillTab:AddButton("Equip Wild Wizards", function()
+	UnequipAll()
+	local count = 0
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		if pet.Name == "Wild Wizard" and count < 8 then
+			EquipPetEvent:FireServer("equipPet", pet)
+			count += 1
+		end
+	end
+end)
+
+KillTab:AddButton("Equip Mighty Monsters", function()
+	UnequipAll()
+	local count = 0
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		if pet.Name == "Mighty Monster" and count < 8 then
+			EquipPetEvent:FireServer("equipPet", pet)
+			count += 1
+		end
+	end
+end)
+
+local killConnection
+local killMode = nil
+local lastKillPetSwap = 0
+local killPetToggle = 0
+
+local function KillSwapPack()
+	local now = tick()
+	if now - lastKillPetSwap < 0.15 then return end
+	lastKillPetSwap = now
+	if killPetToggle == 0 then
+		UnequipAll()
+		local count = 0
+		for _, pet in ipairs(PetsFolder:GetChildren()) do
+			if pet.Name == "Wild Wizard" and count < 8 then
+				EquipPetEvent:FireServer("equipPet", pet)
+				count += 1
+			end
+		end
+		killPetToggle = 1
+	else
+		UnequipAll()
+		local count = 0
+		for _, pet in ipairs(PetsFolder:GetChildren()) do
+			if pet.Name == "Mighty Monster" and count < 8 then
+				EquipPetEvent:FireServer("equipPet", pet)
+				count += 1
+			end
+		end
+		killPetToggle = 0
+	end
+end
+
+local function KillEquipMighty()
+	local now = tick()
+	if now - lastKillPetSwap < 0.15 then return end
+	lastKillPetSwap = now
+	UnequipAll()
+	local count = 0
+	for _, pet in ipairs(PetsFolder:GetChildren()) do
+		if pet.Name == "Mighty Monster" and count < 8 then
+			EquipPetEvent:FireServer("equipPet", pet)
+			count += 1
+		end
+	end
+end
+
+local function StartKill(mode)
+	killMode = mode
+	if killConnection then
+		killConnection:Disconnect()
+		killConnection = nil
+	end
+	killConnection = RunService.Heartbeat:Connect(function()
+		if not killMode then return end
+		if killMode == "pack" then
+			KillSwapPack()
+		elseif killMode == "hp" then
+			KillEquipMighty()
+		end
+		for _, player in ipairs(Players:GetPlayers()) do
+			if player ~= LocalPlayer and IsBlacklisted(player) then
+				KillPlayer(player)
+			end
+		end
+	end)
+end
+
+local function StopKill()
+	killMode = nil
+	if killConnection then
+		killConnection:Disconnect()
+		killConnection = nil
+	end
+end
+
+KillTab:AddToggle("Kill + Pack Spam", function(state)
+	if state then
+		StartKill("pack")
+	else
+		if killMode == "pack" then StopKill() end
+	end
+end)
+
+KillTab:AddToggle("Kill + Mighty Monster Spam", function(state)
+	if state then
+		StartKill("hp")
+	else
+		if killMode == "hp" then StopKill() end
+	end
+end)
+
+KillTab:AddToggle("Kill", function(state)
+	if state then
+		StartKill("none")
+	else
+		if killMode == "none" then StopKill() end
+	end
+end)
+
+KillTab:AddTextbox("Add To Watchlist", "Enter Clan Name", function(text)
+	text = text:match("^%s*(.-)%s*$")
+	if text == "" then return end
+	for _, existing in ipairs(_G.watchlistedPlayers) do
+		if existing:lower() == text:lower() then return end
+	end
+	table.insert(_G.watchlistedPlayers, text)
+	SaveList(WatchlistFile, _G.watchlistedPlayers)
+end)
+
+local watchlistConnection
+
+KillTab:AddToggle("Kill Watchlist", function(state)
+	_G.killWatchlisted = state
+	if state then
+		if not watchlistConnection then
+			watchlistConnection = RunService.Heartbeat:Connect(function()
+				if not _G.killWatchlisted then return end
+				for _, player in ipairs(Players:GetPlayers()) do
+					if player ~= LocalPlayer and IsWatchlisted(player) and IsAlive(player) then
+						KillPlayer(player)
+					end
+				end
+			end)
+		end
+	else
+		if watchlistConnection then
+			watchlistConnection:Disconnect()
+			watchlistConnection = nil
+		end
+	end
+end)
+
+local blacklistLabel = KillTab:AddSectionLabel("Blacklist: None")
+KillTab:AddButton("Clear Blacklist", function()
+	_G.blacklistedPlayers = {}
+	SaveList(BlacklistFile, _G.blacklistedPlayers)
+end)
+
+local watchlistLabel = KillTab:AddSectionLabel("Watchlist: None")
+KillTab:AddButton("Clear Watchlist", function()
+	_G.watchlistedPlayers = {}
+	SaveList(WatchlistFile, _G.watchlistedPlayers)
+end)
+
+task.spawn(function()
+	while true do
+		blacklistLabel.Text = #_G.blacklistedPlayers == 0 and "Blacklist: None" or "Blacklist: " .. table.concat(_G.blacklistedPlayers, ", ")
+		watchlistLabel.Text = #_G.watchlistedPlayers == 0 and "Watchlist: None" or "Watchlist: " .. table.concat(_G.watchlistedPlayers, ", ")
+		task.wait(0.01)
+	end
+end)
+
+local SpectateData = {
+	SelectedPlayer = nil,
+	SelectedPlayerUserId = nil,
+	Spectating = false,
+	CurrentTargetConnection = nil,
+	CameraMonitorLoop = nil
+}
+
+getgenv().SpectateState = getgenv().SpectateState or {
+	SavedUserId = nil,
+	IsSpectating = false
+}
+
+local function HideSpectateDrawings() end
+
+local function stopSpectating()
+	if SpectateData.CurrentTargetConnection then
+		SpectateData.CurrentTargetConnection:Disconnect()
+		SpectateData.CurrentTargetConnection = nil
+	end
+	if SpectateData.CameraMonitorLoop then
+		SpectateData.CameraMonitorLoop = false
+	end
+	if LocalPlayer.Character then
+		local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			Camera.CameraSubject = humanoid
+			Camera.CameraType = Enum.CameraType.Custom
+		end
+	end
+	SpectateData.Spectating = false
+	SpectateData.SelectedPlayer = nil
+	getgenv().SpectateState.IsSpectating = false
+	HideSpectateDrawings()
+end
+
+local function startCameraMonitor()
+	if SpectateData.CameraMonitorLoop then
+		SpectateData.CameraMonitorLoop = false
+		task.wait(0.01)
+	end
+	SpectateData.CameraMonitorLoop = true
+	task.spawn(function()
+		while SpectateData.CameraMonitorLoop do
+			task.wait(0.01)
+			if SpectateData.Spectating and SpectateData.SelectedPlayer then
+				local targetChar = SpectateData.SelectedPlayer.Character
+				if targetChar then
+					local targetHumanoid = targetChar:FindFirstChildOfClass("Humanoid")
+					if targetHumanoid then
+						if Camera.CameraSubject ~= targetHumanoid then
+							Camera.CameraSubject = targetHumanoid
+						end
+					end
+				end
+			else
+				break
+			end
+		end
+	end)
+end
+
+local function updateSpectateTarget(player)
+	if not player then
+		if SpectateData.SelectedPlayerUserId then
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p.UserId == SpectateData.SelectedPlayerUserId then
+					player = p
+					SpectateData.SelectedPlayer = player
+					break
+				end
+			end
+		end
+		if not player and getgenv().SpectateState.SavedUserId then
+			for _, p in ipairs(Players:GetPlayers()) do
+				if p.UserId == getgenv().SpectateState.SavedUserId then
+					player = p
+					SpectateData.SelectedPlayer = player
+					SpectateData.SelectedPlayerUserId = p.UserId
+					break
+				end
+			end
+		end
+		if not player then
+			stopSpectating()
+			return
+		end
+	end
+	SpectateData.SelectedPlayerUserId = player.UserId
+	SpectateData.SelectedPlayer = player
+	getgenv().SpectateState.SavedUserId = player.UserId
+	if SpectateData.CurrentTargetConnection then
+		SpectateData.CurrentTargetConnection:Disconnect()
+		SpectateData.CurrentTargetConnection = nil
+	end
+	local function setCamera(char)
+		if not SpectateData.Spectating or SpectateData.SelectedPlayerUserId ~= player.UserId then
+			return
+		end
+		local humanoid = char:WaitForChild("Humanoid", 3)
+		if humanoid and SpectateData.Spectating and SpectateData.SelectedPlayerUserId == player.UserId then
+			Camera.CameraSubject = humanoid
+		end
+	end
+	if player.Character then
+		setCamera(player.Character)
+	end
+	SpectateData.CurrentTargetConnection = player.CharacterAdded:Connect(function(newChar)
+		if SpectateData.Spectating and SpectateData.SelectedPlayerUserId == player.UserId then
+			setCamera(newChar)
+		end
+	end)
+end
+
+local function StartSpectating(player)
+	if not player then return end
+	SpectateData.Spectating = true
+	getgenv().SpectateState.IsSpectating = true
+	SpectateData.SelectedPlayer = player
+	SpectateData.SelectedPlayerUserId = player.UserId
+	getgenv().SpectateState.SavedUserId = player.UserId
+	updateSpectateTarget(player)
+	startCameraMonitor()
+end
+
+local function StopSpectating()
+	stopSpectating()
+end
+
+local antiLagConnection
+
+MiscTab:AddButton("Anti Lag", function()
+	local terrain = workspace:FindFirstChildWhichIsA("Terrain")
+	if terrain then
+		terrain.WaterWaveSize = 0
+		terrain.WaterWaveSpeed = 0
+		terrain.WaterReflectance = 0
+		terrain.WaterTransparency = 1
+		Lighting.ClockTime = 0
+	end
+	Lighting.GlobalShadows = false
+	Lighting.FogEnd = 9e9
+	Lighting.FogStart = 9e9
+	pcall(function()
+		settings().Rendering.QualityLevel = 1
+	end)
+	for _, v in pairs(game:GetDescendants()) do
+		if v:IsA("BasePart") then
+			v.CastShadow = false
+			v.Material = Enum.Material.Plastic
+			v.Reflectance = 0
+			v.BackSurface = Enum.SurfaceType.SmoothNoOutlines
+			v.BottomSurface = Enum.SurfaceType.SmoothNoOutlines
+			v.FrontSurface = Enum.SurfaceType.SmoothNoOutlines
+			v.LeftSurface = Enum.SurfaceType.SmoothNoOutlines
+			v.RightSurface = Enum.SurfaceType.SmoothNoOutlines
+			v.TopSurface = Enum.SurfaceType.SmoothNoOutlines
+		elseif v:IsA("Decal") then
+			v.Transparency = 1
+			v.Texture = ""
+		elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+			v.Enabled = false
+		end
+	end
+	for _, v in pairs(Lighting:GetDescendants()) do
+		if v:IsA("PostEffect") then
+			v.Enabled = false
+		end
+	end
+	if antiLagConnection then antiLagConnection:Disconnect() end
+	antiLagConnection = workspace.DescendantAdded:Connect(function(child)
+		task.spawn(function()
+			if child:IsA("ForceField") or child:IsA("Sparkles") or child:IsA("Smoke") or child:IsA("Fire") or child:IsA("Beam") then
+				RunService.Heartbeat:Wait()
+				child:Destroy()
+			elseif child:IsA("BasePart") then
+				child.CastShadow = false
+			end
+		end)
+	end)
+end)
+
+local antiFlingEnabled = false
+local currentHumanoid = nil
+
+local function EnableAntiFling()
+	if not antiFlingEnabled or not LocalPlayer.Character then return end
+	local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+	local existing = hrp:FindFirstChild("BodyVelocity")
+	if existing and existing.MaxForce == Vector3.new(100000, 0, 100000) then
+		existing:Destroy()
+	end
+	local bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(100000, 0, 100000)
+	bodyVelocity.Velocity = Vector3.new(0, 0, 0)
+	bodyVelocity.P = 1250
+	bodyVelocity.Parent = hrp
+end
+
+local function DisableAntiFling()
+	if not LocalPlayer.Character then return end
+	local hrp = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+	if not hrp then return end
+	local existing = hrp:FindFirstChild("BodyVelocity")
+	if existing and existing.MaxForce == Vector3.new(100000, 0, 100000) then
+		existing:Destroy()
+	end
+end
+
+MiscTab:AddToggle("Anti Fling", function(state)
+	antiFlingEnabled = state
+	if state then
+		EnableAntiFling()
+	else
+		DisableAntiFling()
+	end
+end)
+
+local waterPart = Instance.new("Part")
+waterPart.Name = "WalkOnWaterPart"
+waterPart.Size = Vector3.new(4, 0.1, 4)
+waterPart.Transparency = 1
+waterPart.Anchored = true
+waterPart.CanCollide = false
+waterPart.CanTouch = false
+waterPart.CanQuery = false
+waterPart.Parent = workspace
+local waterConnection
+
+MiscTab:AddToggle("Walk On Water", function(state)
+	if waterConnection then
+		waterConnection:Disconnect()
+		waterConnection = nil
+	end
+	waterPart.CanCollide = state
+	if state then
+		waterConnection = RunService.RenderStepped:Connect(function()
+			local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+			if hrp then
+				waterPart.CFrame = CFrame.new(hrp.Position.X, -9.5, hrp.Position.Z)
+			end
+		end)
+	else
+		waterPart.CanCollide = false
+		waterPart.Position = Vector3.new(0, -10000, 0)
+	end
+end)
+
+local selectedStatsPlayer = nil
+
+local nameLabel       = StatsTab:AddSectionLabel("Name: N/A")
+local strengthLabel   = StatsTab:AddSectionLabel("Strength: N/A")
+local durabilityLabel = StatsTab:AddSectionLabel("Durability: N/A")
+
+local function UpdateBasicStats(player)
+	if not player then return end
+	nameLabel.Text = "Name: " .. player.DisplayName
+	if not player:FindFirstChild("leaderstats") then return end
+	local function setStat(label, displayName, key)
+		local value = player.leaderstats:FindFirstChild(key) or player:FindFirstChild(key)
+		if value then
+			label.Text = string.format("%s: %s (%s)", displayName, FormatNumber(value.Value), CommaNumber(value.Value))
+		else
+			label.Text = displayName .. ": 0 (0)"
+		end
+	end
+	setStat(strengthLabel, "Strength", "Strength")
+	setStat(durabilityLabel, "Durability", "Durability")
+end
+
+task.spawn(function()
+	while true do
+		if selectedStatsPlayer then
+			UpdateBasicStats(selectedStatsPlayer)
+		end
+		task.wait(0.01)
+	end
+end)
+
+local enemyHealthLabel = StatsTab:AddSectionLabel("Enemy Health: ")
+local enemyDamageLabel = StatsTab:AddSectionLabel("Enemy Damage: ")
+local yourHealthLabel  = StatsTab:AddSectionLabel("Your Health: ")
+local yourDamageLabel  = StatsTab:AddSectionLabel("Your Damage: ")
+local hitsToKillLabel  = StatsTab:AddSectionLabel("Hits To Kill: ")
+
+local function UpdateCombatStats(player)
+	if not player then
+		enemyHealthLabel.Text = "Enemy Health: "
+		enemyDamageLabel.Text = "Enemy Damage: "
+		yourHealthLabel.Text  = "Your Health: "
+		yourDamageLabel.Text  = "Your Damage: "
+		hitsToKillLabel.Text  = "Hits To Kill: "
+		return
+	end
+	local enemyHealth = GetHealth(player)
+	local enemyDamage = GetDamage(player)
+	local yourHealth  = GetHealth(LocalPlayer)
+	local yourDamage  = GetDamage(LocalPlayer)
+	local hits = "inf"
+	if yourDamage > 0 then
+		local h = math.ceil(enemyHealth / yourDamage)
+		if h > 200 then
+			hits = "inf"
+		elseif h < 1 then
+			hits = "instant"
+		else
+			hits = tostring(h)
+		end
+	end
+	enemyHealthLabel.Text = string.format("Enemy Health: %s (%s)", FormatNumber(enemyHealth), CommaNumber(enemyHealth))
+	enemyDamageLabel.Text = string.format("Enemy Damage: %s (%s)", FormatNumber(enemyDamage), CommaNumber(enemyDamage))
+	yourHealthLabel.Text  = string.format("Your Health: %s (%s)", FormatNumber(yourHealth), CommaNumber(yourHealth))
+	yourDamageLabel.Text  = string.format("Your Damage: %s (%s)", FormatNumber(yourDamage), CommaNumber(yourDamage))
+	hitsToKillLabel.Text  = "Hits To Kill: " .. hits
+end
+
+task.spawn(function()
+	while true do
+		UpdateCombatStats(selectedStatsPlayer)
+		task.wait(0.01)
+	end
+end)
+
+local tpButtons = {}
+
+local function RefreshTpButtons()
+	for _, btn in ipairs(tpButtons) do btn:Destroy() end
+	table.clear(tpButtons)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			local btn = TeleportTab:AddButton(player.DisplayName, function()
+				if not IsInTpList(player) then
+					table.insert(_G.tpListedPlayers, player.Name)
+					SaveList(TpListFile, _G.tpListedPlayers)
+				end
+			end, true)
+			table.insert(tpButtons, btn)
+		end
+	end
+end
+
+local blacklistButtons = {}
+
+local function RefreshBlacklistButtons()
+	for _, btn in ipairs(blacklistButtons) do btn:Destroy() end
+	table.clear(blacklistButtons)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			local btn = KillTab:AddButton(player.DisplayName, function()
+				if not IsBlacklisted(player) then
+					table.insert(_G.blacklistedPlayers, player.Name)
+					SaveList(BlacklistFile, _G.blacklistedPlayers)
+				end
+			end, true)
+			table.insert(blacklistButtons, btn)
+		end
+	end
+end
+
+local spectateButtons = {}
+
+local function RefreshSpectateButtons()
+	for _, btn in ipairs(spectateButtons) do
+		btn:Destroy()
+	end
+	table.clear(spectateButtons)
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= LocalPlayer then
+			local btn = SpectateTab:AddButton(player.DisplayName, function()
+				if SpectateData.Spectating and SpectateData.SelectedPlayer == player then
+					StopSpectating()
+				else
+					StartSpectating(player)
+				end
+			end)
+			table.insert(spectateButtons, btn)
+		end
+	end
+end
+
+local statsButtons = {}
+
+local function RefreshStatsButtons()
+	for _, btn in ipairs(statsButtons) do btn:Destroy() end
+	table.clear(statsButtons)
+	for _, player in ipairs(Players:GetPlayers()) do
+		local btn = StatsTab:AddButton(player.DisplayName, function()
+			selectedStatsPlayer = player
+		end, true)
+		table.insert(statsButtons, btn)
+	end
+end
+
+RefreshTpButtons()
+RefreshBlacklistButtons()
+RefreshSpectateButtons()
+RefreshStatsButtons()
+
+local killAutoDetect = false
+local killTpAutoDetect = false
+local blacklistCooldown = {}
+local tpListCooldown = {}
+local blacklistHits = {}
+local tpListHits = {}
+
+KillTab:AddToggle("Kill Auto Detect", function(state)
+	killAutoDetect = state
+end)
+
+TeleportTab:AddToggle("Kill Tp Auto Detect", function(state)
+	killTpAutoDetect = state
+end)
+
+do
+	local detectRange  = 15
+	local requiredHits = 3
+	local tolerance    = 0.02
+	local damageEvent  = ReplicatedStorage:WaitForChild("rEvents"):FindFirstChild("guiDamageEvent")
+	if damageEvent then
+		damageEvent.OnClientEvent:Connect(function(kind, target, damage)
+			if kind ~= "damageShow" then return end
+			if not killAutoDetect and not killTpAutoDetect then return end
+			if type(damage) ~= "number" or damage <= 0 then return end
+			local localRoot = GetLocalRoot()
+			if not localRoot or target ~= localRoot then return end
+			local candidates = {}
+			for _, player in ipairs(Players:GetPlayers()) do
+				if player == LocalPlayer then continue end
+				local character = player.Character
+				local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+				if not rootPart then continue end
+				if (rootPart.Position - localRoot.Position).Magnitude > detectRange then continue end
+				local estimatedDamage = GetDamage(player)
+				if estimatedDamage > 0 then
+					table.insert(candidates, {
+						player = player,
+						diff = math.abs(estimatedDamage - damage)
+					})
+				end
+			end
+			if #candidates == 0 then return end
+			table.sort(candidates, function(a, b) return a.diff < b.diff end)
+			local best = candidates[1]
+			local now = tick()
+			local function addToBlacklist(player)
+				if blacklistCooldown[player] and now - blacklistCooldown[player] < 8 then return end
+				if not IsBlacklisted(player) then
+					table.insert(_G.blacklistedPlayers, player.Name)
+					SaveList(BlacklistFile, _G.blacklistedPlayers)
+				end
+				blacklistCooldown[player] = now
+				blacklistHits = {}
+			end
+			local function addToTpList(player)
+				if tpListCooldown[player] and now - tpListCooldown[player] < 8 then return end
+				if not IsInTpList(player) then
+					table.insert(_G.tpListedPlayers, player.Name)
+					SaveList(TpListFile, _G.tpListedPlayers)
+				end
+				tpListCooldown[player] = now
+				tpListHits = {}
+			end
+			local function process(player)
+				if killAutoDetect then addToBlacklist(player) end
+				if killTpAutoDetect then addToTpList(player) end
+			end
+			if best.diff <= damage * tolerance then
+				process(best.player)
+				return
+			end
+			local hasCloseCompetitors = false
+			for idx = 2, #candidates do
+				if candidates[idx].diff <= best.diff + damage * tolerance then
+					hasCloseCompetitors = true
+					break
+				end
+			end
+			if killAutoDetect then
+				blacklistHits[best.player] = (blacklistHits[best.player] or 0) + 1
+				if not hasCloseCompetitors or blacklistHits[best.player] >= requiredHits then
+					addToBlacklist(best.player)
+				end
+			end
+			if killTpAutoDetect then
+				tpListHits[best.player] = (tpListHits[best.player] or 0) + 1
+				if not hasCloseCompetitors or tpListHits[best.player] >= requiredHits then
+					addToTpList(best.player)
+				end
+			end
+		end)
+	end
+end
+
+local Drawing = Drawing or getgenv().Drawing
+
+local function CreateText(size, color)
+	local t = Drawing.new("Text")
+	t.Visible = false
+	t.Center = true
+	t.Outline = false
+	t.Color = color
+	t.Font = Drawing.Fonts.UI
+	t.Size = size
+	t.Text = ""
+	t.ZIndex = 2
+	return t
+end
+
+local SpecName = CreateText(20, Color3.fromRGB(255, 220, 40))
+local SpecHP   = CreateText(17, Color3.fromRGB(255, 255, 255))
+local SpecDMG  = CreateText(17, Color3.fromRGB(255, 55, 55))
+
+local NameOutlines, HPOutlines, DMGOutlines = {}, {}, {}
+
+local offsets = {
+	Vector2.new(-1.5, -1.5), Vector2.new(0, -1.5), Vector2.new(1.5, -1.5),
+	Vector2.new(-1.5,  0), Vector2.new(1.5,  0),
+	Vector2.new(-1.5,  1.5), Vector2.new(0,  1.5), Vector2.new(1.5,  1.5),
+	Vector2.new(-2, 0), Vector2.new(2, 0), Vector2.new(0, -2), Vector2.new(0, 2)
+}
+
+for i = 1, #offsets do
+	NameOutlines[i] = CreateText(20, Color3.fromRGB(0, 0, 0))
+	HPOutlines[i] = CreateText(17, Color3.fromRGB(0, 0, 0))
+	DMGOutlines[i] = CreateText(17, Color3.fromRGB(0, 0, 0))
+	NameOutlines[i].ZIndex = 1
+	HPOutlines[i].ZIndex = 1
+	DMGOutlines[i].ZIndex = 1
+end
+
+HideSpectateDrawings = function()
+	SpecName.Visible = false
+	SpecHP.Visible = false
+	SpecDMG.Visible = false
+	for i = 1, #offsets do
+		NameOutlines[i].Visible = false
+		HPOutlines[i].Visible = false
+		DMGOutlines[i].Visible = false
+	end
+end
+
+local function SetTextWithOutline(main, outlines, text, pos)
+	main.Text = text
+	main.Position = pos
+	main.Visible = true
+	for i, offset in ipairs(offsets) do
+		outlines[i].Text = text
+		outlines[i].Position = pos + offset
+		outlines[i].Visible = true
+	end
+end
+
+local function UpdateSpectateDrawings()
+	if not SpectateData.Spectating or not SpectateData.SelectedPlayer or not SpectateData.SelectedPlayer.Character then
+		HideSpectateDrawings()
+		return
+	end
+	local char = SpectateData.SelectedPlayer.Character
+	local head = char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
+	if not head then
+		HideSpectateDrawings()
+		return
+	end
+	local worldPos = head.Position + Vector3.new(0, 3.15, 0)
+	local pos, onScreen = Camera:WorldToViewportPoint(worldPos)
+	if not onScreen or pos.Z < 0 then
+		HideSpectateDrawings()
+		return
+	end
+	local x, y = pos.X, pos.Y
+	SetTextWithOutline(SpecName, NameOutlines, SpectateData.SelectedPlayer.DisplayName, Vector2.new(x, y))
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+	local current = humanoid and humanoid.Health or 0
+	local max = GetHealth(SpectateData.SelectedPlayer)
+	SetTextWithOutline(SpecHP, HPOutlines, "HP: " .. FormatNumber(current) .. "/" .. FormatNumber(max), Vector2.new(x, y + 23))
+	SetTextWithOutline(SpecDMG, DMGOutlines, "DMG: " .. FormatNumber(GetDamage(SpectateData.SelectedPlayer)), Vector2.new(x, y + 44))
+end
+
+RunService.RenderStepped:Connect(UpdateSpectateDrawings)
+
+LocalPlayer.CharacterAdded:Connect(function(character)
+	character:WaitForChild("HumanoidRootPart", 5)
+	currentHumanoid = character:FindFirstChildOfClass("Humanoid")
+	if antiFlingEnabled then
+		EnableAntiFling()
+	end
+	local humanoid = character:WaitForChild("Humanoid", 3)
+	if humanoid then
+		currentHumanoid = humanoid
+	end
+	task.wait(0.01)
+	if getgenv().SpectateState.IsSpectating then
+		SpectateData.Spectating = true
+		updateSpectateTarget()
+		startCameraMonitor()
+	else
+		if currentHumanoid then
+			Camera.CameraSubject = currentHumanoid
+		end
+	end
+end)
+
+if LocalPlayer.Character then
+	currentHumanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+end
+
+Players.PlayerAdded:Connect(function(player)
+	task.wait(0.01)
+	RefreshTpButtons()
+	RefreshBlacklistButtons()
+	RefreshSpectateButtons()
+	RefreshStatsButtons()
+	if getgenv().SpectateState.IsSpectating and getgenv().SpectateState.SavedUserId == player.UserId then
+		SpectateData.Spectating = true
+		SpectateData.SelectedPlayer = player
+		SpectateData.SelectedPlayerUserId = player.UserId
+		updateSpectateTarget(player)
+		startCameraMonitor()
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	task.wait(0.01)
+	if player.UserId == SpectateData.SelectedPlayerUserId then
+		if SpectateData.Spectating then
+			stopSpectating()
+			SpectateData.SelectedPlayer = nil
+			SpectateData.CurrentTargetConnection = nil
+			if LocalPlayer.Character then
+				local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+				if humanoid then
+					Camera.CameraSubject = humanoid
+				end
+			end
+		end
+	end
+	RefreshTpButtons()
+	RefreshBlacklistButtons()
+	RefreshSpectateButtons()
+	RefreshStatsButtons()
+end)
