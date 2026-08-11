@@ -707,6 +707,7 @@ local function AddPetButtons(tab)
 	tab:AddButton("Equip Wild Wizards", function() EquipNamed("Wild Wizard") end)
 	tab:AddButton("Equip Mighty Monsters", function() EquipNamed("Mighty Monster") end)
 end
+
 AddPetButtons(TeleportTab)
 AddPetButtons(KillTab)
 
@@ -1341,7 +1342,6 @@ Players.PlayerAdded:Connect(function(player)
 	RefreshBlacklistButtons()
 	RefreshSpectateButtons()
 	RefreshStatsButtons()
-
 	if getgenv().SpectateState.IsSpectating and getgenv().SpectateState.SavedUserId == player.UserId then
 		SpectateData.Spectating = true
 		SpectateData.SelectedPlayer = player
