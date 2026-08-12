@@ -39,7 +39,9 @@ local l={
 
 local function m(n,o)
 	local p=Instance.new(n)
-	for q,r in pairs(o or {})do p[q]=r end
+	for q,r in pairs(o or {})do
+		p[q]=r
+	end
 	return p
 end
 
@@ -92,7 +94,7 @@ function al.new(am)
 	local ao=m("ScreenGui",{
 		Name=am.Name or "TreeHub",
 		ResetOnSpawn=false,
-		Parent=g,
+		Parent=f,
 		ZIndexBehavior=Enum.ZIndexBehavior.Sibling
 	})
 	an.Gui=ao
@@ -243,7 +245,7 @@ function al.new(am)
 	an.TimerLabel=bh
 	local bi=os.clock()
 	local bj=0
-	b.Heartbeat:Connect(function(bk)
+	c.Heartbeat:Connect(function(bk)
 		bj+=bk
 		if bj>=1 then
 			bj-=1
@@ -291,7 +293,7 @@ function al.new(am)
 			bq=false
 		end
 	end)
-	f.InputChanged:Connect(function(ca)
+	e.InputChanged:Connect(function(ca)
 		if ca.UserInputType~=Enum.UserInputType.MouseMovement and ca.UserInputType~=Enum.UserInputType.Touch then return end
 		if bn then
 			local cb=ca.Position-bo
@@ -331,12 +333,12 @@ function al:AddTab(cf)
 	s(ch,6)
 	ch.MouseEnter:Connect(function()
 		if ch.BackgroundTransparency==1 then
-			e:Create(ch,TweenInfo.new(0.12),{BackgroundTransparency=0,BackgroundColor3=k.e}):Play()
+			d:Create(ch,TweenInfo.new(0.12),{BackgroundTransparency=0,BackgroundColor3=k.e}):Play()
 		end
 	end)
 	ch.MouseLeave:Connect(function()
 		if ch.TextColor3~=k.i then
-			e:Create(ch,TweenInfo.new(0.12),{BackgroundTransparency=1}):Play()
+			d:Create(ch,TweenInfo.new(0.12),{BackgroundTransparency=1}):Play()
 		end
 	end)
 	local ci=m("Frame",{
@@ -390,12 +392,12 @@ function al:SelectTab(cm)
 	for cn,co in ipairs(self.Tabs)do
 		co.Page.Visible=(cn==cm)
 		if cn==cm then
-			e:Create(co.Button,TweenInfo.new(0.15),{BackgroundTransparency=0,BackgroundColor3=k.h,TextColor3=k.i}):Play()
+			d:Create(co.Button,TweenInfo.new(0.15),{BackgroundTransparency=0,BackgroundColor3=k.h,TextColor3=k.i}):Play()
 		else
-			e:Create(co.Button,TweenInfo.new(0.15),{BackgroundTransparency=1,TextColor3=k.j}):Play()
+			d:Create(co.Button,TweenInfo.new(0.15),{BackgroundTransparency=1,TextColor3=k.j}):Play()
 		end
 	end
-	e:Create(self.Indicator,TweenInfo.new(0.18),{Position=UDim2.fromOffset(0,self.TabOffsets[cm] or 10)}):Play()
+	d:Create(self.Indicator,TweenInfo.new(0.18),{Position=UDim2.fromOffset(0,self.TabOffsets[cm] or 10)}):Play()
 end
 
 function ce:AddLabel(cp,cq)
@@ -426,10 +428,10 @@ function ce:AddButton(cr,cs,ct)
 	s(cu,7)
 	v(cu,k.l,1)
 	cu.MouseEnter:Connect(function()
-		e:Create(cu,TweenInfo.new(0.12),{BackgroundColor3=k.e}):Play()
+		d:Create(cu,TweenInfo.new(0.12),{BackgroundColor3=k.e}):Play()
 	end)
 	cu.MouseLeave:Connect(function()
-		e:Create(cu,TweenInfo.new(0.12),{BackgroundColor3=k.d}):Play()
+		d:Create(cu,TweenInfo.new(0.12),{BackgroundColor3=k.d}):Play()
 	end)
 	cu.Activated:Connect(function()
 		if cs then cs() end
@@ -479,11 +481,11 @@ function ce:AddToggle(cv,cw,cx)
 	cy.Activated:Connect(function()
 		db=not db
 		if db then
-			e:Create(cz,TweenInfo.new(0.15),{BackgroundColor3=k.g}):Play()
-			e:Create(da,TweenInfo.new(0.15),{Position=UDim2.fromOffset(19,2),BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
+			d:Create(cz,TweenInfo.new(0.15),{BackgroundColor3=k.g}):Play()
+			d:Create(da,TweenInfo.new(0.15),{Position=UDim2.fromOffset(19,2),BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
 		else
-			e:Create(cz,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(48,28,68)}):Play()
-			e:Create(da,TweenInfo.new(0.15),{Position=UDim2.fromOffset(2,2),BackgroundColor3=Color3.fromRGB(210,190,255)}):Play()
+			d:Create(cz,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(48,28,68)}):Play()
+			d:Create(da,TweenInfo.new(0.15),{Position=UDim2.fromOffset(2,2),BackgroundColor3=Color3.fromRGB(210,190,255)}):Play()
 		end
 		if cw then cw(db) end
 	end)
@@ -534,7 +536,7 @@ function ce:AddTextBox(dc,dd,de,df)
 end
 
 local dj=al.new({
-	Title=j.." Is Tree's BBG",
+	Title=i.." Is Tree's BBG",
 	FooterText="Made By Tree",
 	AvatarImage="rbxthumb://type=AvatarHeadShot&id="..h.UserId.."&w=150&h=150",
 	Width=640,
@@ -567,7 +569,9 @@ local function dt(du)
 	if isfile(du) then
 		for dw in readfile(du):gmatch("[^\r\n]+")do
 			local dx=dw:match("^%s*(.-)%s*$")
-			if dx and dx~="" then table.insert(dv,dx) end
+			if dx and dx~="" then
+				table.insert(dv,dx)
+			end
 		end
 	end
 	return dv
@@ -609,8 +613,7 @@ local function ek()
 end
 
 local function el(em)
-	return em and em.Character and em.Character:FindFirstChild("HumanoidRootPart") and
-		em.Character:FindFirstChild("Humanoid") and em.Character.Humanoid.Health>0
+	return em and em.Character and em.Character:FindFirstChild("HumanoidRootPart") and em.Character:FindFirstChild("Humanoid") and em.Character.Humanoid.Health>0
 end
 
 local function en()
@@ -636,8 +639,7 @@ end
 
 local function er(es)
 	if not es then return 0 end
-	local et=es:FindFirstChild("Durability") or
-		(es:FindFirstChild("leaderstats") and es.leaderstats:FindFirstChild("Durability"))
+	local et=es:FindFirstChild("Durability") or (es:FindFirstChild("leaderstats") and es.leaderstats:FindFirstChild("Durability"))
 	if not et then return 0 end
 	local eu=1
 	if es:FindFirstChild("ultimatesFolder") and es.ultimatesFolder:FindFirstChild("Infernal Health") then
@@ -680,7 +682,7 @@ local function fd()
 end
 
 local ff=h:WaitForChild("petsFolder"):WaitForChild("Unique")
-local fg=d:WaitForChild("rEvents"):WaitForChild("equipPetEvent")
+local fg=b:WaitForChild("rEvents"):WaitForChild("equipPetEvent")
 
 local function fh()
 	for _,fi in ipairs(ff:GetChildren())do
@@ -700,8 +702,12 @@ local function fj(fk,fl)
 end
 
 local function fo(fp)
-	fp:AddButton("Equip Wild Wizards",function() fj("Wild Wizard") end)
-	fp:AddButton("Equip Mighty Monsters",function() fj("Mighty Monster") end)
+	fp:AddButton("Equip Wild Wizards",function()
+		fj("Wild Wizard")
+	end)
+	fp:AddButton("Equip Mighty Monsters",function()
+		fj("Mighty Monster")
+	end)
 end
 
 fo(dk)
@@ -733,16 +739,22 @@ end
 local function fy(fz)
 	fr=fz
 	if fq then fq:Disconnect() end
-	fq=b.Heartbeat:Connect(function()
+	fq=c.Heartbeat:Connect(function()
 		if not fr then return end
-		if fr=="pack" then fu()
-		elseif fr=="hp" then fw() end
+		if fr=="pack" then
+			fu()
+		elseif fr=="hp" then
+			fw()
+		end
 		local ga=fd()
 		if not ga then return end
 		for _,gb in ipairs(_G.tpListedPlayers)do
 			local gc
 			for _,gd in ipairs(a:GetPlayers())do
-				if gd.Name:lower()==gb:lower() then gc=gd break end
+				if gd.Name:lower()==gb:lower() then
+					gc=gd
+					break
+				end
 			end
 			if gc and el(gc) then
 				local ge=ga.CFrame
@@ -752,7 +764,9 @@ local function fy(fz)
 				if gf then
 					gf.Died:Once(function()
 						task.wait(0.01)
-						if ga and ga.Parent then ga.CFrame=ge end
+						if ga and ga.Parent then
+							ga.CFrame=ge
+						end
 					end)
 				end
 				break
@@ -763,31 +777,43 @@ end
 
 local function gg()
 	fr=nil
-	if fq then fq:Disconnect() fq=nil end
+	if fq then
+		fq:Disconnect()
+		fq=nil
+	end
 end
 
 dk:AddToggle("Kill Tp + Pack Spam",function(gh)
-	if gh then fy("pack")
-	elseif fr=="pack" then gg() end
+	if gh then
+		fy("pack")
+	elseif fr=="pack" then
+		gg()
+	end
 end)
 
 dk:AddToggle("Kill Tp + Mighty Monster Spam",function(gi)
-	if gi then fy("hp")
-	elseif fr=="hp" then gg() end
+	if gi then
+		fy("hp")
+	elseif fr=="hp" then
+		gg()
+	end
 end)
 
 dk:AddToggle("Kill Tp",function(gj)
 	if gj then
 		fr="none"
 		if fq then fq:Disconnect() end
-		fq=b.Heartbeat:Connect(function()
+		fq=c.Heartbeat:Connect(function()
 			if fr~="none" then return end
 			local gk=fd()
 			if not gk then return end
 			for _,gl in ipairs(_G.tpListedPlayers)do
 				local gm
 				for _,gn in ipairs(a:GetPlayers())do
-					if gn.Name:lower()==gl:lower() then gm=gn break end
+					if gn.Name:lower()==gl:lower() then
+						gm=gn
+						break
+					end
 				end
 				if gm and el(gm) then
 					local go=gk.CFrame
@@ -797,7 +823,9 @@ dk:AddToggle("Kill Tp",function(gj)
 					if gp then
 						gp.Died:Once(function()
 							task.wait(0.01)
-							if gk and gk.Parent then gk.CFrame=go end
+							if gk and gk.Parent then
+								gk.CFrame=go
+							end
 						end)
 					end
 					break
@@ -818,7 +846,7 @@ end)
 task.spawn(function()
 	while true do
 		gq.Text=#_G.tpListedPlayers==0 and "TpList: None" or "TpList: "..table.concat(_G.tpListedPlayers,", ")
-		task.wait(0.01)
+		task.wait(0.5)
 	end
 end)
 
@@ -848,10 +876,13 @@ end
 local function gz(ha)
 	gs=ha
 	if gr then gr:Disconnect() end
-	gr=b.Heartbeat:Connect(function()
+	gr=c.Heartbeat:Connect(function()
 		if not gs then return end
-		if gs=="pack" then gv()
-		elseif gs=="hp" then gx() end
+		if gs=="pack" then
+			gv()
+		elseif gs=="hp" then
+			gx()
+		end
 		for _,hb in ipairs(a:GetPlayers())do
 			if hb~=h and eb(hb) then
 				ep(hb)
@@ -862,22 +893,34 @@ end
 
 local function hc()
 	gs=nil
-	if gr then gr:Disconnect() gr=nil end
+	if gr then
+		gr:Disconnect()
+		gr=nil
+	end
 end
 
 dl:AddToggle("Kill + Pack Spam",function(hd)
-	if hd then gz("pack")
-	elseif gs=="pack" then hc() end
+	if hd then
+		gz("pack")
+	elseif gs=="pack" then
+		hc()
+	end
 end)
 
 dl:AddToggle("Kill + Mighty Monster Spam",function(he)
-	if he then gz("hp")
-	elseif gs=="hp" then hc() end
+	if he then
+		gz("hp")
+	elseif gs=="hp" then
+		hc()
+	end
 end)
 
 dl:AddToggle("Kill",function(hf)
-	if hf then gz("none")
-	elseif gs=="none" then hc() end
+	if hf then
+		gz("none")
+	elseif gs=="none" then
+		hc()
+	end
 end)
 
 dl:AddTextBox("Add To Watchlist","Enter Clan Name",function(hg)
@@ -895,7 +938,7 @@ dl:AddToggle("Kill Watchlist",function(hj)
 	_G.killWatchlisted=hj
 	if hj then
 		if not hi then
-			hi=b.Heartbeat:Connect(function()
+			hi=c.Heartbeat:Connect(function()
 				if not _G.killWatchlisted then return end
 				for _,hk in ipairs(a:GetPlayers())do
 					if hk~=h and ee(hk) and el(hk) then
@@ -905,7 +948,10 @@ dl:AddToggle("Kill Watchlist",function(hj)
 			end)
 		end
 	else
-		if hi then hi:Disconnect() hi=nil end
+		if hi then
+			hi:Disconnect()
+			hi=nil
+		end
 	end
 end)
 
@@ -925,7 +971,7 @@ task.spawn(function()
 	while true do
 		hl.Text=#_G.blacklistedPlayers==0 and "Blacklist: None" or "Blacklist: "..table.concat(_G.blacklistedPlayers,", ")
 		hm.Text=#_G.watchlistedPlayers==0 and "Watchlist: None" or "Watchlist: "..table.concat(_G.watchlistedPlayers,", ")
-		task.wait(0.01)
+		task.wait(0.5)
 	end
 end)
 
@@ -948,14 +994,12 @@ local function ho()
 		hn.d:Disconnect()
 		hn.d=nil
 	end
-	if hn.f then
-		hn.f=false
-	end
+	if hn.f then hn.f=false end
 	if h.Character then
 		local hp=h.Character:FindFirstChildOfClass("Humanoid")
 		if hp then
-			i.CameraSubject=hp
-			i.CameraType=Enum.CameraType.Custom
+			j.CameraSubject=hp
+			j.CameraType=Enum.CameraType.Custom
 		end
 	end
 	hn.c=false
@@ -977,8 +1021,8 @@ local function hq()
 				if hr then
 					local hs=hr:FindFirstChildOfClass("Humanoid")
 					if hs then
-						if i.CameraSubject~=hs then
-							i.CameraSubject=hs
+						if j.CameraSubject~=hs then
+							j.CameraSubject=hs
 						end
 					end
 				end
@@ -1026,12 +1070,10 @@ local function ht(hu)
 		if not hn.c or hn.b~=hu.UserId then return end
 		local hz=hy:WaitForChild("Humanoid",3)
 		if hz and hn.c and hn.b==hu.UserId then
-			i.CameraSubject=hz
+			j.CameraSubject=hz
 		end
 	end
-	if hu.Character then
-		hx(hu.Character)
-	end
+	if hu.Character then hx(hu.Character) end
 	hn.d=hu.CharacterAdded:Connect(function(ia)
 		if hn.c and hn.b==hu.UserId then
 			hx(ia)
@@ -1074,9 +1116,7 @@ local function if_()
 	end
 end
 
-if hn.e then
-	hn.e:Disconnect()
-end
+if hn.e then hn.e:Disconnect() end
 
 hn.e=h.CharacterAdded:Connect(function(ij)
 	local ik=ij:WaitForChild("Humanoid",3)
@@ -1087,7 +1127,7 @@ hn.e=h.CharacterAdded:Connect(function(ij)
 		hq()
 	else
 		if ik then
-			i.CameraSubject=ik
+			j.CameraSubject=ik
 		end
 	end
 end)
@@ -1100,12 +1140,14 @@ dn:AddButton("Anti Lag",function()
 		im.WaterWaveSpeed=0
 		im.WaterReflectance=0
 		im.WaterTransparency=1
-		c.ClockTime=0
+		g.ClockTime=0
 	end
-	c.GlobalShadows=false
-	c.FogEnd=9e9
-	c.FogStart=9e9
-	pcall(function() settings().Rendering.QualityLevel=1 end)
+	g.GlobalShadows=false
+	g.FogEnd=9e9
+	g.FogStart=9e9
+	pcall(function()
+		settings().Rendering.QualityLevel=1
+	end)
 	for _,in_ in pairs(game:GetDescendants())do
 		if in_:IsA("BasePart") then
 			in_.CastShadow=false
@@ -1121,7 +1163,7 @@ dn:AddButton("Anti Lag",function()
 			in_.Enabled=false
 		end
 	end
-	for _,ip in pairs(c:GetDescendants())do
+	for _,ip in pairs(g:GetDescendants())do
 		if ip:IsA("PostEffect") then
 			ip.Enabled=false
 		end
@@ -1130,7 +1172,7 @@ dn:AddButton("Anti Lag",function()
 	il=workspace.DescendantAdded:Connect(function(iq)
 		task.spawn(function()
 			if iq:IsA("ForceField") or iq:IsA("Sparkles") or iq:IsA("Smoke") or iq:IsA("Fire") or iq:IsA("Beam") then
-				b.Heartbeat:Wait()
+				c.Heartbeat:Wait()
 				iq:Destroy()
 			elseif iq:IsA("BasePart") then
 				iq.CastShadow=false
@@ -1152,10 +1194,13 @@ local ir=m("Part",{
 
 local is
 dn:AddToggle("Walk On Water",function(it)
-	if is then is:Disconnect() is=nil end
+	if is then
+		is:Disconnect()
+		is=nil
+	end
 	ir.CanCollide=it
 	if it then
-		is=b.RenderStepped:Connect(function()
+		is=c.RenderStepped:Connect(function()
 			local iu=h.Character and h.Character:FindFirstChild("HumanoidRootPart")
 			if iu then
 				ir.CFrame=CFrame.new(iu.Position.X,-9.5,iu.Position.Z)
@@ -1191,7 +1236,7 @@ end
 task.spawn(function()
 	while true do
 		if iv then iz(iv) end
-		task.wait(0.01)
+		task.wait(0.5)
 	end
 end)
 
@@ -1217,9 +1262,13 @@ local function jl(jm)
 	local jr="inf"
 	if jq>0 then
 		local js=math.ceil(jn/jq)
-		if js>200 then jr="inf"
-		elseif js<1 then jr="instant"
-		else jr=tostring(js) end
+		if js>200 then
+			jr="inf"
+		elseif js<1 then
+			jr="instant"
+		else
+			jr=tostring(js)
+		end
 	end
 	jg.Text=string.format("Enemy Health: %s (%s)",af(jn),ah(jn))
 	jh.Text=string.format("Enemy Damage: %s (%s)",af(jo),ah(jo))
@@ -1231,14 +1280,16 @@ end
 task.spawn(function()
 	while true do
 		jl(iv)
-		task.wait(0.01)
+		task.wait(0.5)
 	end
 end)
 
 local jt,ju,jv={},{},{}
 
 local function jw()
-	for _,jx in ipairs(jt)do jx:Destroy() end
+	for _,jx in ipairs(jt)do
+		jx:Destroy()
+	end
 	table.clear(jt)
 	for _,jy in ipairs(a:GetPlayers())do
 		if jy~=h then
@@ -1254,7 +1305,9 @@ local function jw()
 end
 
 local function ka()
-	for _,kb in ipairs(ju)do kb:Destroy() end
+	for _,kb in ipairs(ju)do
+		kb:Destroy()
+	end
 	table.clear(ju)
 	for _,kc in ipairs(a:GetPlayers())do
 		if kc~=h then
@@ -1270,7 +1323,9 @@ local function ka()
 end
 
 local function ke()
-	for _,kf in ipairs(jv)do kf:Destroy() end
+	for _,kf in ipairs(jv)do
+		kf:Destroy()
+	end
 	table.clear(jv)
 	for _,kg in ipairs(a:GetPlayers())do
 		local kh=do_:AddButton(kg.DisplayName,function()
@@ -1290,7 +1345,7 @@ h.CharacterAdded:Connect(function(ki)
 end)
 
 a.PlayerAdded:Connect(function(kj)
-	task.wait(0.01)
+	task.wait(0.1)
 	jw()
 	ka()
 	if_()
@@ -1305,14 +1360,16 @@ a.PlayerAdded:Connect(function(kj)
 end)
 
 a.PlayerRemoving:Connect(function(kk)
-	task.wait(0.01)
+	task.wait(0.1)
 	if kk.UserId==hn.b and hn.c then
 		ho()
 		hn.a=nil
 		hn.d=nil
 		if h.Character then
 			local kl=h.Character:FindFirstChildOfClass("Humanoid")
-			if kl then i.CameraSubject=kl end
+			if kl then
+				j.CameraSubject=kl
+			end
 		end
 	end
 	jw()
