@@ -129,7 +129,7 @@ function al.new(am)
 			aq=false
 		end
 	end)
-	local aw,ax=am.Width or 640,am.Height or 430
+	local aw,ax=am.Width or 500,am.Height or 340
 	local ay=m("Frame",{
 		Parent=ao,
 		Size=UDim2.fromOffset(aw,ax),
