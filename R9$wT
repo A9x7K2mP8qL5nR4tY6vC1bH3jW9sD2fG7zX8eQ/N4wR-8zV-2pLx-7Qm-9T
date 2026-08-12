@@ -539,8 +539,8 @@ local dj=al.new({
 	Title=i.." Is Tree's BBG",
 	FooterText="Made By Tree",
 	AvatarImage="rbxthumb://type=AvatarHeadShot&id="..h.UserId.."&w=150&h=150",
-	Width=640,
-	Height=430,
+	Width=500,
+	Height=340,
 	ToggleLabel="T"
 })
 
