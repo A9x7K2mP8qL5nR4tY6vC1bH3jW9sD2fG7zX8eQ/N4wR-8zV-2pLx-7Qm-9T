@@ -1,426 +1,422 @@
-local a = game:GetService("Players")
-local b = game:GetService("ReplicatedStorage")
-local c = game:GetService("RunService")
-local d = game:GetService("TweenService")
-local e = game:GetService("UserInputService")
-local f = game:GetService("CoreGui")
-local g = game:GetService("Lighting")
-local h = a.LocalPlayer
-local i = workspace.CurrentCamera
+local a=game:GetService("Players")
+local b=game:GetService("ReplicatedStorage")
+local c=game:GetService("RunService")
+local d=game:GetService("TweenService")
+local e=game:GetService("UserInputService")
+local f=game:GetService("CoreGui")
+local g=game:GetService("Lighting")
+local h=a.LocalPlayer
+local i=workspace.CurrentCamera
 
-local j = {
-	Bg = Color3.fromRGB(14, 10, 22),
-	Header = Color3.fromRGB(18, 12, 28),
-	Side = Color3.fromRGB(12, 8, 20),
-	Button = Color3.fromRGB(28, 18, 42),
-	Hover = Color3.fromRGB(42, 26, 62),
-	Accent = Color3.fromRGB(190, 50, 255),
-	Selected = Color3.fromRGB(55, 18, 85),
-	Text = Color3.fromRGB(255, 255, 255),
-	SubText = Color3.fromRGB(185, 155, 220),
-	Stroke = Color3.fromRGB(65, 35, 95),
-	Font = Enum.Font.GothamBold
+local j={
+	a=Color3.fromRGB(14,10,22),
+	b=Color3.fromRGB(18,12,28),
+	c=Color3.fromRGB(12,8,20),
+	d=Color3.fromRGB(28,18,42),
+	e=Color3.fromRGB(42,26,62),
+	f=Color3.fromRGB(190,50,255),
+	g=Color3.fromRGB(55,18,85),
+	h=Color3.fromRGB(255,255,255),
+	i=Color3.fromRGB(185,155,220),
+	j=Color3.fromRGB(65,35,95),
+	k=Enum.Font.GothamBold
 }
 
-local function k(l, m)
-	local n = Instance.new(l)
-	for o, p in pairs(m or {}) do
-		n[o] = p
+local function k(l,m)
+	local n=Instance.new(l)
+	for o,p in pairs(m or {})do
+		n[o]=p
 	end
 	return n
 end
 
-local function q(r, s)
-	return k("UICorner", {Parent = r, CornerRadius = UDim.new(0, s or 7)})
+local function q(r,s)
+	return k("UICorner",{Parent=r,CornerRadius=UDim.new(0,s or 7)})
 end
 
-local function t(u, v, w)
-	return k("UIStroke", {Parent = u, Color = v or j.Stroke, Thickness = w or 1})
+local function t(u,v,w)
+	return k("UIStroke",{Parent=u,Color=v or j.j,Thickness=w or 1})
 end
 
 local function x(y)
-	y = math.max(0, math.floor(y))
+	y=math.max(0,math.floor(y))
 	return string.format("%dD / %dH / %dM / %dS",
-		math.floor(y / 86400),
-		math.floor((y % 86400) / 3600),
-		math.floor((y % 3600) / 60),
-		y % 60)
+		math.floor(y/86400),
+		math.floor((y%86400)/3600),
+		math.floor((y%3600)/60),
+		y%60)
 end
 
 local function z(aa)
-	if aa >= 1e15 then return string.format("%.1fqa", aa / 1e15)
-	elseif aa >= 1e12 then return string.format("%.1ft", aa / 1e12)
-	elseif aa >= 1e9 then return string.format("%.1fb", aa / 1e9)
-	elseif aa >= 1e6 then return string.format("%.1fm", aa / 1e6)
-	elseif aa >= 1e3 then return string.format("%.1fk", aa / 1e3)
-	elseif aa == math.floor(aa) then return tostring(math.floor(aa))
-	else return string.format("%.1f", aa) end
+	if aa>=1e15 then return string.format("%.1fqa",aa/1e15)
+	elseif aa>=1e12 then return string.format("%.1ft",aa/1e12)
+	elseif aa>=1e9 then return string.format("%.1fb",aa/1e9)
+	elseif aa>=1e6 then return string.format("%.1fm",aa/1e6)
+	elseif aa>=1e3 then return string.format("%.1fk",aa/1e3)
+	elseif aa==math.floor(aa) then return tostring(math.floor(aa))
+	else return string.format("%.1f",aa) end
 end
 
 local function ab(ac)
-	local ad = tostring(math.floor(ac))
+	local ad=tostring(math.floor(ac))
 	while true do
 		local ae
-		ad, ae = ad:gsub("^(-?%d+)(%d%d%d)", "%1,%2")
-		if ae == 0 then break end
+		ad,ae=ad:gsub("^(-?%d+)(%d%d%d)","%1,%2")
+		if ae==0 then break end
 	end
 	return ad
 end
 
-local af = {}
-af.__index = af
+local af={}
+af.__index=af
 
 function af.new(ag)
-	ag = ag or {}
-	local ah = setmetatable({}, af)
-	ah.Tabs = {}
-	ah.TabOffsets = {}
-	ah.Selected = 1
-	local ai = k("ScreenGui", {
-		Name = ag.Name or "TreeHub",
-		ResetOnSpawn = false,
-		Parent = f,
-		ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+	ag=ag or {}
+	local ah=setmetatable({},af)
+	ah.Tabs={}
+	ah.TabOffsets={}
+	ah.Selected=1
+	local ai=k("ScreenGui",{
+		Name=ag.Name or "TreeHub",
+		ResetOnSpawn=false,
+		Parent=f,
+		ZIndexBehavior=Enum.ZIndexBehavior.Sibling
 	})
-	ah.Gui = ai
-	local aj = k("TextButton", {
-		Parent = ai,
-		Size = UDim2.fromOffset(44, 44),
-		Position = UDim2.new(0.04, 0, 0.12, 0),
-		BackgroundColor3 = j.Header,
-		Text = "",
-		AutoButtonColor = false,
-		BorderSizePixel = 0
+	ah.Gui=ai
+	local aj=k("TextButton",{
+		Parent=ai,
+		Size=UDim2.fromOffset(44,44),
+		Position=UDim2.new(0.04,0,0.12,0),
+		BackgroundColor3=j.b,
+		Text="",
+		AutoButtonColor=false,
+		BorderSizePixel=0
 	})
-	q(aj, 12)
-	t(aj, j.Accent, 1.5)
-	k("TextLabel", {
-		Parent = aj,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		Text = ag.ToggleLabel or "T",
-		Font = j.Font,
-		TextSize = 15,
-		TextColor3 = j.Accent
+	q(aj,12)
+	t(aj,j.f,1.5)
+	k("TextLabel",{
+		Parent=aj,
+		Size=UDim2.fromScale(1,1),
+		BackgroundTransparency=1,
+		Text=ag.ToggleLabel or "T",
+		Font=j.k,
+		TextSize=15,
+		TextColor3=j.f
 	})
-	local ak, al, am, an = false, nil, nil, false
+	local ak,al,am,an=false,nil,nil,false
 	aj.InputBegan:Connect(function(ao)
-		if ao.UserInputType == Enum.UserInputType.MouseButton1 or ao.UserInputType == Enum.UserInputType.Touch then
-			ak, an, al, am = true, false, ao.Position, aj.Position
+		if ao.UserInputType==Enum.UserInputType.MouseButton1 or ao.UserInputType==Enum.UserInputType.Touch then
+			ak,an,al,am=true,false,ao.Position,aj.Position
 		end
 	end)
 	aj.InputEnded:Connect(function(ap)
-		if ap.UserInputType == Enum.UserInputType.MouseButton1 or ap.UserInputType == Enum.UserInputType.Touch then
-			ak = false
+		if ap.UserInputType==Enum.UserInputType.MouseButton1 or ap.UserInputType==Enum.UserInputType.Touch then
+			ak=false
 		end
 	end)
-	local aq, ar = ag.Width or 500, ag.Height or 340
-	local as = k("Frame", {
-		Parent = ai,
-		Size = UDim2.fromOffset(aq, ar),
-		Position = UDim2.new(0.5, -aq/2, 0.5, -ar/2),
-		BackgroundColor3 = j.Bg,
-		BorderSizePixel = 0,
-		Active = true,
-		ClipsDescendants = true
+	local aq,ar=ag.Width or 500,ag.Height or 340
+	local as=k("Frame",{
+		Parent=ai,
+		Size=UDim2.fromOffset(aq,ar),
+		Position=UDim2.new(0.5,-aq/2,0.5,-ar/2),
+		BackgroundColor3=j.a,
+		BorderSizePixel=0,
+		Active=true,
+		ClipsDescendants=true
 	})
-	q(as, 10)
-	t(as, Color3.fromRGB(80, 40, 120), 1)
-	ah.Panel = as
-	local at = k("Frame", {
-		Parent = as,
-		Size = UDim2.new(1, 0, 0, 40),
-		BackgroundColor3 = j.Header,
-		BorderSizePixel = 0
+	q(as,10)
+	t(as,Color3.fromRGB(80,40,120),1)
+	ah.Panel=as
+	local at=k("Frame",{
+		Parent=as,
+		Size=UDim2.new(1,0,0,40),
+		BackgroundColor3=j.b,
+		BorderSizePixel=0
 	})
-	q(at, 10)
-	k("TextLabel", {
-		Parent = at,
-		Size = UDim2.new(1, -20, 1, 0),
-		Position = UDim2.fromOffset(14, 0),
-		BackgroundTransparency = 1,
-		Text = ag.Title or "Hub",
-		TextColor3 = j.Text,
-		Font = j.Font,
-		TextSize = 14,
-		TextXAlignment = Enum.TextXAlignment.Left
+	q(at,10)
+	k("TextLabel",{
+		Parent=at,
+		Size=UDim2.new(1,-20,1,0),
+		Position=UDim2.fromOffset(14,0),
+		BackgroundTransparency=1,
+		Text=ag.Title or "Hub",
+		TextColor3=j.h,
+		Font=j.k,
+		TextSize=14,
+		TextXAlignment=Enum.TextXAlignment.Left
 	})
-	local au = k("Frame", {
-		Parent = as,
-		Size = UDim2.new(0, 132, 1, -(40 + 46 + 22)),
-		Position = UDim2.fromOffset(0, 40),
-		BackgroundColor3 = j.Side,
-		BorderSizePixel = 0
+	local au=k("Frame",{
+		Parent=as,
+		Size=UDim2.new(0,132,1,-(40+46+22)),
+		Position=UDim2.fromOffset(0,40),
+		BackgroundColor3=j.c,
+		BorderSizePixel=0
 	})
-	local av = k("Frame", {
-		Parent = au,
-		Size = UDim2.fromOffset(3, 28),
-		Position = UDim2.fromOffset(0, 10),
-		BackgroundColor3 = j.Accent,
-		BorderSizePixel = 0
+	local av=k("Frame",{
+		Parent=au,
+		Size=UDim2.fromOffset(3,28),
+		Position=UDim2.fromOffset(0,10),
+		BackgroundColor3=j.f,
+		BorderSizePixel=0
 	})
-	q(av, 2)
-	ah.Indicator = av
-	local aw = k("ScrollingFrame", {
-		Parent = au,
-		Size = UDim2.new(1, -4, 1, 0),
-		Position = UDim2.fromOffset(4, 0),
-		BackgroundTransparency = 1,
-		ScrollBarThickness = 0,
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		CanvasSize = UDim2.new(),
-		BorderSizePixel = 0
+	q(av,2)
+	ah.Indicator=av
+	local aw=k("ScrollingFrame",{
+		Parent=au,
+		Size=UDim2.new(1,-4,1,0),
+		Position=UDim2.fromOffset(4,0),
+		BackgroundTransparency=1,
+		ScrollBarThickness=0,
+		AutomaticCanvasSize=Enum.AutomaticSize.Y,
+		CanvasSize=UDim2.new(),
+		BorderSizePixel=0
 	})
-	k("UIListLayout", {Parent = aw, Padding = UDim.new(0, 4)})
-	k("UIPadding", {Parent = aw, PaddingTop = UDim.new(0, 8)})
-	ah.TabList = aw
-	local ax = k("Frame", {
-		Parent = as,
-		Size = UDim2.new(1, -(132 + 5), 1, -(40 + 46 + 22)),
-		Position = UDim2.fromOffset(137, 40),
-		BackgroundTransparency = 1,
-		BorderSizePixel = 0
+	k("UIListLayout",{Parent=aw,Padding=UDim.new(0,4)})
+	k("UIPadding",{Parent=aw,PaddingTop=UDim.new(0,8)})
+	ah.TabList=aw
+	local ax=k("Frame",{
+		Parent=as,
+		Size=UDim2.new(1,-(132+5),1,-(40+46+22)),
+		Position=UDim2.fromOffset(137,40),
+		BackgroundTransparency=1,
+		BorderSizePixel=0
 	})
-	ah.Content = ax
-	local ay = k("Frame", {
-		Parent = as,
-		Size = UDim2.new(1, 0, 0, 46),
-		Position = UDim2.new(0, 0, 1, -(46 + 22)),
-		BackgroundColor3 = j.Header,
-		BorderSizePixel = 0
+	ah.Content=ax
+	local ay=k("Frame",{
+		Parent=as,
+		Size=UDim2.new(1,0,0,46),
+		Position=UDim2.new(0,0,1,-(46+22)),
+		BackgroundColor3=j.b,
+		BorderSizePixel=0
 	})
-	local az = k("ImageLabel", {
-		Parent = ay,
-		Size = UDim2.fromOffset(30, 30),
-		Position = UDim2.new(0, 12, 0.5, -15),
-		BackgroundColor3 = Color3.fromRGB(22, 14, 34),
-		Image = ag.AvatarImage or "",
-		BorderSizePixel = 0
+	local az=k("ImageLabel",{
+		Parent=ay,
+		Size=UDim2.fromOffset(30,30),
+		Position=UDim2.new(0,12,0.5,-15),
+		BackgroundColor3=Color3.fromRGB(22,14,34),
+		Image=ag.AvatarImage or "",
+		BorderSizePixel=0
 	})
-	q(az, 15)
+	q(az,15)
 	t(az)
-	k("TextLabel", {
-		Parent = ay,
-		Size = UDim2.new(1, -56, 1, 0),
-		Position = UDim2.fromOffset(50, 0),
-		BackgroundTransparency = 1,
-		Text = ag.FooterText or "",
-		TextColor3 = j.Text,
-		Font = j.Font,
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Left
+	k("TextLabel",{
+		Parent=ay,
+		Size=UDim2.new(1,-56,1,0),
+		Position=UDim2.fromOffset(50,0),
+		BackgroundTransparency=1,
+		Text=ag.FooterText or "",
+		TextColor3=j.h,
+		Font=j.k,
+		TextSize=13,
+		TextXAlignment=Enum.TextXAlignment.Left
 	})
-	local ba = k("Frame", {
-		Parent = as,
-		Size = UDim2.new(1, 0, 0, 22),
-		Position = UDim2.new(0, 0, 1, -22),
-		BackgroundColor3 = Color3.fromRGB(10, 6, 16),
-		BorderSizePixel = 0
+	local ba=k("Frame",{
+		Parent=as,
+		Size=UDim2.new(1,0,0,22),
+		Position=UDim2.new(0,0,1,-22),
+		BackgroundColor3=Color3.fromRGB(10,6,16),
+		BorderSizePixel=0
 	})
-	q(ba, 10)
-	local bb = k("TextLabel", {
-		Parent = ba,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		Text = x(0),
-		TextColor3 = j.Accent,
-		Font = j.Font,
-		TextSize = 13
+	q(ba,10)
+	local bb=k("TextLabel",{
+		Parent=ba,
+		Size=UDim2.fromScale(1,1),
+		BackgroundTransparency=1,
+		Text=x(0),
+		TextColor3=j.f,
+		Font=j.k,
+		TextSize=13
 	})
-	ah.TimerLabel = bb
-	local bc = os.clock()
-	local bd = 0
+	ah.TimerLabel=bb
+	local bc=os.clock()
+	local bd=0
 	c.Heartbeat:Connect(function(be)
-		bd += be
-		if bd >= 1 then
-			bd -= 1
-			bb.Text = x(os.clock() - bc)
+		bd+=be
+		if bd>=1 then
+			bd-=1
+			bb.Text=x(os.clock()-bc)
 		end
 	end)
-	local bf = k("TextButton", {
-		Parent = as,
-		Size = UDim2.fromOffset(16, 16),
-		Position = UDim2.new(1, -16, 1, -16),
-		BackgroundTransparency = 1,
-		Text = "",
-		ZIndex = 10,
-		AutoButtonColor = false
+	local bf=k("TextButton",{
+		Parent=as,
+		Size=UDim2.fromOffset(16,16),
+		Position=UDim2.new(1,-16,1,-16),
+		BackgroundTransparency=1,
+		Text="",
+		ZIndex=10,
+		AutoButtonColor=false
 	})
-	local bg = true
+	local bg=true
 	aj.MouseButton1Click:Connect(function()
 		if an then return end
-		bg = not bg
-		as.Visible = bg
+		bg=not bg
+		as.Visible=bg
 	end)
-	local bh, bi, bj = false, nil, nil
-	local bk, bl, bm = false, nil, nil
+	local bh,bi,bj=false,nil,nil
+	local bk,bl,bm=false,nil,nil
 	local function bn(bo)
-		if bo.UserInputType == Enum.UserInputType.MouseButton1 or bo.UserInputType == Enum.UserInputType.Touch then
-			bh, bi, bj = true, bo.Position, as.Position
+		if bo.UserInputType==Enum.UserInputType.MouseButton1 or bo.UserInputType==Enum.UserInputType.Touch then
+			bh,bi,bj=true,bo.Position,as.Position
 		end
 	end
 	local function bp(bq)
-		if bq.UserInputType == Enum.UserInputType.MouseButton1 or bq.UserInputType == Enum.UserInputType.Touch then
-			bh = false
+		if bq.UserInputType==Enum.UserInputType.MouseButton1 or bq.UserInputType==Enum.UserInputType.Touch then
+			bh=false
 		end
 	end
-	for _, br in ipairs({at, au, aw, ax, ay, ba}) do
+	for _,br in ipairs({at,au,aw,ax,ay,ba})do
 		br.InputBegan:Connect(bn)
 		br.InputEnded:Connect(bp)
 	end
 	bf.InputBegan:Connect(function(bs)
-		if bs.UserInputType == Enum.UserInputType.MouseButton1 or bs.UserInputType == Enum.UserInputType.Touch then
-			bk, bl, bm = true, bs.Position, as.Size
+		if bs.UserInputType==Enum.UserInputType.MouseButton1 or bs.UserInputType==Enum.UserInputType.Touch then
+			bk,bl,bm=true,bs.Position,as.Size
 		end
 	end)
 	bf.InputEnded:Connect(function(bt)
-		if bt.UserInputType == Enum.UserInputType.MouseButton1 or bt.UserInputType == Enum.UserInputType.Touch then
-			bk = false
+		if bt.UserInputType==Enum.UserInputType.MouseButton1 or bt.UserInputType==Enum.UserInputType.Touch then
+			bk=false
 		end
 	end)
 	e.InputChanged:Connect(function(bu)
-		if bu.UserInputType ~= Enum.UserInputType.MouseMovement and bu.UserInputType ~= Enum.UserInputType.Touch then return end
+		if bu.UserInputType~=Enum.UserInputType.MouseMovement and bu.UserInputType~=Enum.UserInputType.Touch then return end
 		if bh then
-			local bv = bu.Position - bi
-			as.Position = UDim2.new(bj.X.Scale, bj.X.Offset + bv.X, bj.Y.Scale, bj.Y.Offset + bv.Y)
+			local bv=bu.Position-bi
+			as.Position=UDim2.new(bj.X.Scale,bj.X.Offset+bv.X,bj.Y.Scale,bj.Y.Offset+bv.Y)
 		elseif bk then
-			local bw = bu.Position - bl
-			as.Size = UDim2.new(bm.X.Scale, math.max(500, bm.X.Offset + bw.X), bm.Y.Scale, math.max(340, bm.Y.Offset + bw.Y))
+			local bw=bu.Position-bl
+			as.Size=UDim2.new(bm.X.Scale,math.max(500,bm.X.Offset+bw.X),bm.Y.Scale,math.max(340,bm.Y.Offset+bw.Y))
 		elseif ak then
-			local bx = bu.Position - al
-			if math.abs(bx.X) > 3 or math.abs(bx.Y) > 3 then an = true end
-			aj.Position = UDim2.new(am.X.Scale, am.X.Offset + bx.X, am.Y.Scale, am.Y.Offset + bx.Y)
+			local bx=bu.Position-al
+			if math.abs(bx.X)>3 or math.abs(bx.Y)>3 then an=true end
+			aj.Position=UDim2.new(am.X.Scale,am.X.Offset+bx.X,am.Y.Scale,am.Y.Offset+bx.Y)
 		end
 	end)
-	ah._beginDrag = bn
-	ah._endDrag = bp
+	ah._beginDrag=bn
+	ah._endDrag=bp
 	return ah
 end
 
-local by = {}
-by.__index = by
+local by={}
+by.__index=by
 
 function af:AddTab(bz)
-	local ca = #self.Tabs + 1
-	local cb = k("TextButton", {
-		Parent = self.TabList,
-		Size = UDim2.new(1, -8, 0, 30),
-		BackgroundColor3 = j.Button,
-		BackgroundTransparency = 1,
-		Text = " " .. bz,
-		TextColor3 = j.SubText,
-		Font = j.Font,
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		AutoButtonColor = false,
-		BorderSizePixel = 0
+	local ca=#self.Tabs+1
+	local cb=k("TextButton",{
+		Parent=self.TabList,
+		Size=UDim2.new(1,-8,0,30),
+		BackgroundColor3=j.d,
+		BackgroundTransparency=1,
+		Text=" "..bz,
+		TextColor3=j.i,
+		Font=j.k,
+		TextSize=13,
+		TextXAlignment=Enum.TextXAlignment.Left,
+		AutoButtonColor=false,
+		BorderSizePixel=0
 	})
-	q(cb, 6)
+	q(cb,6)
 	cb.MouseEnter:Connect(function()
-		if cb.BackgroundTransparency == 1 then
-			d:Create(cb, TweenInfo.new(0.12), {BackgroundTransparency = 0, BackgroundColor3 = j.Hover}):Play()
+		if cb.BackgroundTransparency==1 then
+			d:Create(cb,TweenInfo.new(0.12),{BackgroundTransparency=0,BackgroundColor3=j.e}):Play()
 		end
 	end)
 	cb.MouseLeave:Connect(function()
-		if cb.TextColor3 ~= j.Text then
-			d:Create(cb, TweenInfo.new(0.12), {BackgroundTransparency = 1}):Play()
+		if cb.TextColor3~=j.h then
+			d:Create(cb,TweenInfo.new(0.12),{BackgroundTransparency=1}):Play()
 		end
 	end)
-	local cc = k("Frame", {
-		Parent = self.Content,
-		Size = UDim2.fromScale(1, 1),
-		BackgroundTransparency = 1,
-		Visible = ca == 1,
-		BorderSizePixel = 0
+	local cc=k("Frame",{
+		Parent=self.Content,
+		Size=UDim2.fromScale(1,1),
+		BackgroundTransparency=1,
+		Visible=ca==1,
+		BorderSizePixel=0
 	})
-	local cd = k("ScrollingFrame", {
-		Parent = cc,
-		Size = UDim2.new(0.57, -6, 1, 0),
-		BackgroundTransparency = 1,
-		ScrollBarThickness = 3,
-		ScrollBarImageColor3 = j.Accent,
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		CanvasSize = UDim2.new(),
-		BorderSizePixel = 0
+	local cd=k("ScrollingFrame",{
+		Parent=cc,
+		Size=UDim2.new(0.57,-6,1,0),
+		BackgroundTransparency=1,
+		ScrollBarThickness=3,
+		ScrollBarImageColor3=j.f,
+		AutomaticCanvasSize=Enum.AutomaticSize.Y,
+		CanvasSize=UDim2.new(),
+		BorderSizePixel=0
 	})
-	k("UIListLayout", {Parent = cd, Padding = UDim.new(0, 6)})
-	k("UIPadding", {Parent = cd, PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 10), PaddingRight = UDim.new(0, 6)})
-	local ce = k("ScrollingFrame", {
-		Parent = cc,
-		Size = UDim2.new(0.43, -6, 1, 0),
-		Position = UDim2.new(0.57, 6, 0, 0),
-		BackgroundTransparency = 1,
-		ScrollBarThickness = 3,
-		ScrollBarImageColor3 = j.Accent,
-		AutomaticCanvasSize = Enum.AutomaticSize.Y,
-		CanvasSize = UDim2.new(),
-		BorderSizePixel = 0
+	k("UIListLayout",{Parent=cd,Padding=UDim.new(0,6)})
+	k("UIPadding",{Parent=cd,PaddingTop=UDim.new(0,10),PaddingLeft=UDim.new(0,10),PaddingRight=UDim.new(0,6)})
+	local ce=k("ScrollingFrame",{
+		Parent=cc,
+		Size=UDim2.new(0.43,-6,1,0),
+		Position=UDim2.new(0.57,6,0,0),
+		BackgroundTransparency=1,
+		ScrollBarThickness=3,
+		ScrollBarImageColor3=j.f,
+		AutomaticCanvasSize=Enum.AutomaticSize.Y,
+		CanvasSize=UDim2.new(),
+		BorderSizePixel=0
 	})
-	k("UIListLayout", {Parent = ce, Padding = UDim.new(0, 6)})
-	k("UIPadding", {Parent = ce, PaddingTop = UDim.new(0, 10), PaddingLeft = UDim.new(0, 6), PaddingRight = UDim.new(0, 10)})
-
+	k("UIListLayout",{Parent=ce,Padding=UDim.new(0,6)})
+	k("UIPadding",{Parent=ce,PaddingTop=UDim.new(0,10),PaddingLeft=UDim.new(0,6),PaddingRight=UDim.new(0,10)})
 	if self._beginDrag then
-		for _, cf in ipairs({cd, ce, cc}) do
+		for _,cf in ipairs({cd,ce,cc})do
 			cf.InputBegan:Connect(self._beginDrag)
 			cf.InputEnded:Connect(self._endDrag)
 		end
 	end
-
-	table.insert(self.Tabs, {Button = cb, Page = cc})
-	table.insert(self.TabOffsets, 10 + (ca - 1) * 34)
-
+	table.insert(self.Tabs,{Button=cb,Page=cc})
+	table.insert(self.TabOffsets,10+(ca-1)*34)
 	cb.MouseButton1Click:Connect(function()
 		self:SelectTab(ca)
 	end)
-
-	return setmetatable({Main = cd, Side = ce, Page = cc, Library = self}, by)
+	return setmetatable({Main=cd,Side=ce,Page=cc,Library=self},by)
 end
 
 function af:SelectTab(cg)
-	self.Selected = cg
-	for ch, ci in ipairs(self.Tabs) do
-		ci.Page.Visible = (ch == cg)
-		if ch == cg then
-			d:Create(ci.Button, TweenInfo.new(0.15), {BackgroundTransparency = 0, BackgroundColor3 = j.Selected, TextColor3 = j.Text}):Play()
+	self.Selected=cg
+	for ch,ci in ipairs(self.Tabs)do
+		ci.Page.Visible=(ch==cg)
+		if ch==cg then
+			d:Create(ci.Button,TweenInfo.new(0.15),{BackgroundTransparency=0,BackgroundColor3=j.g,TextColor3=j.h}):Play()
 		else
-			d:Create(ci.Button, TweenInfo.new(0.15), {BackgroundTransparency = 1, TextColor3 = j.SubText}):Play()
+			d:Create(ci.Button,TweenInfo.new(0.15),{BackgroundTransparency=1,TextColor3=j.i}):Play()
 		end
 	end
-	d:Create(self.Indicator, TweenInfo.new(0.18), {Position = UDim2.fromOffset(0, self.TabOffsets[cg] or 10)}):Play()
+	d:Create(self.Indicator,TweenInfo.new(0.18),{Position=UDim2.fromOffset(0,self.TabOffsets[cg] or 10)}):Play()
 end
 
-function by:AddLabel(cj, ck)
-	return k("TextLabel", {
-		Parent = ck and self.Side or self.Main,
-		Size = UDim2.new(1, 0, 0, 18),
-		BackgroundTransparency = 1,
-		Text = cj,
-		TextColor3 = j.Accent,
-		Font = j.Font,
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Left
+function by:AddLabel(cj,ck)
+	return k("TextLabel",{
+		Parent=ck and self.Side or self.Main,
+		Size=UDim2.new(1,0,0,18),
+		BackgroundTransparency=1,
+		Text=cj,
+		TextColor3=j.f,
+		Font=j.k,
+		TextSize=13,
+		TextXAlignment=Enum.TextXAlignment.Left
 	})
 end
 
-function by:AddButton(cl, cm, cn)
-	local co = k("TextButton", {
-		Parent = cn and self.Side or self.Main,
-		Size = UDim2.new(1, 0, 0, 32),
-		BackgroundColor3 = j.Button,
-		Text = cl,
-		TextColor3 = j.Text,
-		Font = j.Font,
-		TextSize = 13,
-		AutoButtonColor = false,
-		BorderSizePixel = 0
+function by:AddButton(cl,cm,cn)
+	local co=k("TextButton",{
+		Parent=cn and self.Side or self.Main,
+		Size=UDim2.new(1,0,0,32),
+		BackgroundColor3=j.d,
+		Text=cl,
+		TextColor3=j.h,
+		Font=j.k,
+		TextSize=13,
+		AutoButtonColor=false,
+		BorderSizePixel=0
 	})
-	q(co, 7)
+	q(co,7)
 	t(co)
 	co.MouseEnter:Connect(function()
-		d:Create(co, TweenInfo.new(0.12), {BackgroundColor3 = j.Hover}):Play()
+		d:Create(co,TweenInfo.new(0.12),{BackgroundColor3=j.e}):Play()
 	end)
 	co.MouseLeave:Connect(function()
-		d:Create(co, TweenInfo.new(0.12), {BackgroundColor3 = j.Button}):Play()
+		d:Create(co,TweenInfo.new(0.12),{BackgroundColor3=j.d}):Play()
 	end)
 	co.Activated:Connect(function()
 		if cm then cm() end
@@ -428,167 +424,167 @@ function by:AddButton(cl, cm, cn)
 	return co
 end
 
-function by:AddToggle(cp, cq, cr)
-	local cs = k("TextButton", {
-		Parent = cr and self.Side or self.Main,
-		Size = UDim2.new(1, 0, 0, 32),
-		BackgroundColor3 = j.Button,
-		Text = "",
-		AutoButtonColor = false,
-		BorderSizePixel = 0
+function by:AddToggle(cp,cq,cr)
+	local cs=k("TextButton",{
+		Parent=cr and self.Side or self.Main,
+		Size=UDim2.new(1,0,0,32),
+		BackgroundColor3=j.d,
+		Text="",
+		AutoButtonColor=false,
+		BorderSizePixel=0
 	})
-	q(cs, 7)
+	q(cs,7)
 	t(cs)
-	k("TextLabel", {
-		Parent = cs,
-		Size = UDim2.new(1, -52, 1, 0),
-		Position = UDim2.fromOffset(12, 0),
-		BackgroundTransparency = 1,
-		Text = cp,
-		TextColor3 = j.Text,
-		Font = j.Font,
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Left
+	k("TextLabel",{
+		Parent=cs,
+		Size=UDim2.new(1,-52,1,0),
+		Position=UDim2.fromOffset(12,0),
+		BackgroundTransparency=1,
+		Text=cp,
+		TextColor3=j.h,
+		Font=j.k,
+		TextSize=13,
+		TextXAlignment=Enum.TextXAlignment.Left
 	})
-	local ct = k("Frame", {
-		Parent = cs,
-		Size = UDim2.fromOffset(34, 17),
-		Position = UDim2.new(1, -46, 0.5, -8.5),
-		BackgroundColor3 = Color3.fromRGB(48, 28, 68),
-		BorderSizePixel = 0
+	local ct=k("Frame",{
+		Parent=cs,
+		Size=UDim2.fromOffset(34,17),
+		Position=UDim2.new(1,-46,0.5,-8.5),
+		BackgroundColor3=Color3.fromRGB(48,28,68),
+		BorderSizePixel=0
 	})
-	q(ct, 9)
-	local cu = k("Frame", {
-		Parent = ct,
-		Size = UDim2.fromOffset(13, 13),
-		Position = UDim2.fromOffset(2, 2),
-		BackgroundColor3 = Color3.fromRGB(210, 190, 255),
-		BorderSizePixel = 0
+	q(ct,9)
+	local cu=k("Frame",{
+		Parent=ct,
+		Size=UDim2.fromOffset(13,13),
+		Position=UDim2.fromOffset(2,2),
+		BackgroundColor3=Color3.fromRGB(210,190,255),
+		BorderSizePixel=0
 	})
-	q(cu, 7)
-	local cv = false
+	q(cu,7)
+	local cv=false
 	cs.Activated:Connect(function()
-		cv = not cv
+		cv=not cv
 		if cv then
-			d:Create(ct, TweenInfo.new(0.15), {BackgroundColor3 = j.Accent}):Play()
-			d:Create(cu, TweenInfo.new(0.15), {Position = UDim2.fromOffset(19, 2), BackgroundColor3 = Color3.fromRGB(255, 255, 255)}):Play()
+			d:Create(ct,TweenInfo.new(0.15),{BackgroundColor3=j.f}):Play()
+			d:Create(cu,TweenInfo.new(0.15),{Position=UDim2.fromOffset(19,2),BackgroundColor3=Color3.fromRGB(255,255,255)}):Play()
 		else
-			d:Create(ct, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(48, 28, 68)}):Play()
-			d:Create(cu, TweenInfo.new(0.15), {Position = UDim2.fromOffset(2, 2), BackgroundColor3 = Color3.fromRGB(210, 190, 255)}):Play()
+			d:Create(ct,TweenInfo.new(0.15),{BackgroundColor3=Color3.fromRGB(48,28,68)}):Play()
+			d:Create(cu,TweenInfo.new(0.15),{Position=UDim2.fromOffset(2,2),BackgroundColor3=Color3.fromRGB(210,190,255)}):Play()
 		end
 		if cq then cq(cv) end
 	end)
 	return cs
 end
 
-function by:AddTextBox(cw, cx, cy, cz)
-	local da = k("Frame", {
-		Parent = cz and self.Side or self.Main,
-		Size = UDim2.new(1, 0, 0, 32),
-		BackgroundColor3 = j.Button,
-		BorderSizePixel = 0
+function by:AddTextBox(cw,cx,cy,cz)
+	local da=k("Frame",{
+		Parent=cz and self.Side or self.Main,
+		Size=UDim2.new(1,0,0,32),
+		BackgroundColor3=j.d,
+		BorderSizePixel=0
 	})
-	q(da, 7)
+	q(da,7)
 	t(da)
-	k("TextLabel", {
-		Parent = da,
-		Size = UDim2.new(0.38, 0, 1, 0),
-		Position = UDim2.fromOffset(10, 0),
-		BackgroundTransparency = 1,
-		Text = cw,
-		TextColor3 = j.Text,
-		Font = j.Font,
-		TextSize = 13,
-		TextXAlignment = Enum.TextXAlignment.Left
+	k("TextLabel",{
+		Parent=da,
+		Size=UDim2.new(0.38,0,1,0),
+		Position=UDim2.fromOffset(10,0),
+		BackgroundTransparency=1,
+		Text=cw,
+		TextColor3=j.h,
+		Font=j.k,
+		TextSize=13,
+		TextXAlignment=Enum.TextXAlignment.Left
 	})
-	local db = k("TextBox", {
-		Parent = da,
-		Size = UDim2.new(0.55, -8, 0, 22),
-		Position = UDim2.new(0.42, 0, 0.5, -11),
-		BackgroundColor3 = Color3.fromRGB(22, 14, 34),
-		TextColor3 = j.Text,
-		PlaceholderText = cx or "",
-		PlaceholderColor3 = Color3.fromRGB(130, 105, 165),
-		Font = j.Font,
-		TextSize = 13,
-		Text = "",
-		ClearTextOnFocus = false,
-		TextXAlignment = Enum.TextXAlignment.Left,
-		BorderSizePixel = 0
+	local db=k("TextBox",{
+		Parent=da,
+		Size=UDim2.new(0.55,-8,0,22),
+		Position=UDim2.new(0.42,0,0.5,-11),
+		BackgroundColor3=Color3.fromRGB(22,14,34),
+		TextColor3=j.h,
+		PlaceholderText=cx or "",
+		PlaceholderColor3=Color3.fromRGB(130,105,165),
+		Font=j.k,
+		TextSize=13,
+		Text="",
+		ClearTextOnFocus=false,
+		TextXAlignment=Enum.TextXAlignment.Left,
+		BorderSizePixel=0
 	})
-	q(db, 5)
-	k("UIPadding", {Parent = db, PaddingLeft = UDim.new(0, 7)})
+	q(db,5)
+	k("UIPadding",{Parent=db,PaddingLeft=UDim.new(0,7)})
 	db.FocusLost:Connect(function(dc)
-		if cy then cy(db.Text, dc) end
+		if cy then cy(db.Text,dc) end
 	end)
 	return db
 end
 
-local dd = af.new({
-	Title = h.DisplayName .. " Is Tree's BBG",
-	FooterText = "Made By Tree",
-	AvatarImage = "rbxthumb://type=AvatarHeadShot&id=" .. h.UserId .. "&w=150&h=150",
-	Width = 500,
-	Height = 340,
-	ToggleLabel = "T"
+local dd=af.new({
+	Title=h.DisplayName.." Is Tree's BBG",
+	FooterText="Made By Tree",
+	AvatarImage="rbxthumb://type=AvatarHeadShot&id="..h.UserId.."&w=150&h=150",
+	Width=500,
+	Height=340,
+	ToggleLabel="T"
 })
 
-local de = dd:AddTab("Teleporting")
-local df = dd:AddTab("Killing")
-local dg = dd:AddTab("Spectating")
-local dh = dd:AddTab("Misc")
-local di = dd:AddTab("Stats")
+local de=dd:AddTab("Teleporting")
+local df=dd:AddTab("Killing")
+local dg=dd:AddTab("Spectating")
+local dh=dd:AddTab("Misc")
+local di=dd:AddTab("Stats")
 
-_G.tpListedPlayers = _G.tpListedPlayers or {}
-_G.blacklistedPlayers = _G.blacklistedPlayers or {}
-_G.watchlistedPlayers = _G.watchlistedPlayers or {}
+_G.tpListedPlayers=_G.tpListedPlayers or {}
+_G.blacklistedPlayers=_G.blacklistedPlayers or {}
+_G.watchlistedPlayers=_G.watchlistedPlayers or {}
 
-local dj = {
-	Tp = "TpList_Players.txt",
-	Black = "Blacklist_Players.txt",
-	Watch = "Watchlist_Clans.txt"
+local dj={
+	a="TpList_Players.txt",
+	b="Blacklist_Players.txt",
+	c="Watchlist_Clans.txt"
 }
 
-local function dk(dl, dm)
-	writefile(dl, table.concat(dm, "\n"))
+local function dk(dl,dm)
+	writefile(dl,table.concat(dm,"\n"))
 end
 
 local function dn(do_)
-	local dp = {}
+	local dp={}
 	if isfile(do_) then
 		for dq in readfile(do_):gmatch("[^\r\n]+") do
-			local dr = dq:match("^%s*(.-)%s*$")
-			if dr and dr ~= "" then
-				table.insert(dp, dr)
+			local dr=dq:match("^%s*(.-)%s*$")
+			if dr and dr~="" then
+				table.insert(dp,dr)
 			end
 		end
 	end
 	return dp
 end
 
-_G.tpListedPlayers = dn(dj.Tp)
-_G.blacklistedPlayers = dn(dj.Black)
-_G.watchlistedPlayers = dn(dj.Watch)
+_G.tpListedPlayers=dn(dj.a)
+_G.blacklistedPlayers=dn(dj.b)
+_G.watchlistedPlayers=dn(dj.c)
 
 local function ds(dt)
-	for _, du in ipairs(_G.tpListedPlayers) do
-		if du:lower() == dt.Name:lower() then return true end
+	for _,du in ipairs(_G.tpListedPlayers)do
+		if du:lower()==dt.Name:lower() then return true end
 	end
 	return false
 end
 
 local function dv(dw)
-	for _, dx in ipairs(_G.blacklistedPlayers) do
-		if dx:lower() == dw.Name:lower() then return true end
+	for _,dx in ipairs(_G.blacklistedPlayers)do
+		if dx:lower()==dw.Name:lower() then return true end
 	end
 	return false
 end
 
 local function dy(dz)
-	local ea, eb = dz.Name:lower(), dz.DisplayName:lower()
-	for _, ec in ipairs(_G.watchlistedPlayers) do
-		local ed = ec:lower()
-		if ea:find(ed, 1, true) or eb:find(ed, 1, true) then return true end
+	local ea,eb=dz.Name:lower(),dz.DisplayName:lower()
+	for _,ec in ipairs(_G.watchlistedPlayers)do
+		local ed=ec:lower()
+		if ea:find(ed,1,true) or eb:find(ed,1,true) then return true end
 	end
 	return false
 end
@@ -604,151 +600,151 @@ local function ef(eg)
 	return eg and eg.Character
 		and eg.Character:FindFirstChild("HumanoidRootPart")
 		and eg.Character:FindFirstChild("Humanoid")
-		and eg.Character.Humanoid.Health > 0
+		and eg.Character.Humanoid.Health>0
 end
 
 local function eh()
-	for _, ei in pairs(h.Backpack:GetChildren()) do
-		if ei.Name == "Punch" and h.Character and h.Character:FindFirstChild("Humanoid") then
+	for _,ei in pairs(h.Backpack:GetChildren())do
+		if ei.Name=="Punch" and h.Character and h.Character:FindFirstChild("Humanoid") then
 			h.Character.Humanoid:EquipTool(ei)
 		end
 	end
 	if h:FindFirstChild("muscleEvent") then
-		h.muscleEvent:FireServer("punch", "leftHand")
-		h.muscleEvent:FireServer("punch", "rightHand")
+		h.muscleEvent:FireServer("punch","leftHand")
+		h.muscleEvent:FireServer("punch","rightHand")
 	end
 end
 
 local function ej(ek)
 	if not ef(ek) or not ee():FindFirstChild("LeftHand") then return end
 	pcall(function()
-		firetouchinterest(ek.Character.HumanoidRootPart, ee().LeftHand, 0)
-		firetouchinterest(ek.Character.HumanoidRootPart, ee().LeftHand, 1)
+		firetouchinterest(ek.Character.HumanoidRootPart,ee().LeftHand,0)
+		firetouchinterest(ek.Character.HumanoidRootPart,ee().LeftHand,1)
 		eh()
 	end)
 end
 
 local function el(em)
 	if not em then return 0 end
-	local en = em:FindFirstChild("Durability") or (em:FindFirstChild("leaderstats") and em.leaderstats:FindFirstChild("Durability"))
+	local en=em:FindFirstChild("Durability") or (em:FindFirstChild("leaderstats") and em.leaderstats:FindFirstChild("Durability"))
 	if not en then return 0 end
-	local eo = 1
+	local eo=1
 	if em:FindFirstChild("ultimatesFolder") and em.ultimatesFolder:FindFirstChild("Infernal Health") then
-		eo += 0.15 * (em.ultimatesFolder["Infernal Health"].Value or 0)
+		eo+=0.15*(em.ultimatesFolder["Infernal Health"].Value or 0)
 	end
 	if em:FindFirstChild("equippedPets") then
-		for _, ep in ipairs(em.equippedPets:GetChildren()) do
+		for _,ep in ipairs(em.equippedPets:GetChildren())do
 			if ep:IsA("ObjectValue") and ep.Value then
-				local eq = string.lower(ep.Value.Name)
-				if eq:match("mighty") and eq:match("monster") then eo += 0.5 end
-				if eq:match("small") and eq:match("fry") then eo += 0.25 end
+				local eq=string.lower(ep.Value.Name)
+				if eq:match("mighty") and eq:match("monster") then eo+=0.5 end
+				if eq:match("small") and eq:match("fry") then eo+=0.25 end
 			end
 		end
 	end
-	return en.Value * eo
+	return en.Value*eo
 end
 
 local function er(es)
 	if not es or not es:FindFirstChild("leaderstats") or not es.leaderstats:FindFirstChild("Strength") then return 0 end
-	local et = es.leaderstats.Strength.Value * (1 / 15)
-	local eu = 1
+	local et=es.leaderstats.Strength.Value*(1/15)
+	local eu=1
 	if es:FindFirstChild("ultimatesFolder") and es.ultimatesFolder:FindFirstChild("Demon Damage") then
-		eu += 0.1 * (es.ultimatesFolder["Demon Damage"].Value or 0)
+		eu+=0.1*(es.ultimatesFolder["Demon Damage"].Value or 0)
 	end
 	if es:FindFirstChild("equippedPets") then
-		for _, ev in ipairs(es.equippedPets:GetChildren()) do
+		for _,ev in ipairs(es.equippedPets:GetChildren())do
 			if ev:IsA("ObjectValue") and ev.Value then
-				local ew = string.lower(ev.Value.Name)
-				if ew:match("wild") and ew:match("wizard") then eu += 0.5 end
-				if ew:match("chaos") and ew:match("sorcerer") then eu += 0.25 end
+				local ew=string.lower(ev.Value.Name)
+				if ew:match("wild") and ew:match("wizard") then eu+=0.5 end
+				if ew:match("chaos") and ew:match("sorcerer") then eu+=0.25 end
 			end
 		end
 	end
-	return et * eu
+	return et*eu
 end
 
 local function ex()
-	local ey = ee()
+	local ey=ee()
 	return ey and ey:FindFirstChild("HumanoidRootPart")
 end
 
-local ez = h:WaitForChild("petsFolder"):WaitForChild("Unique")
-local fa = b:WaitForChild("rEvents"):WaitForChild("equipPetEvent")
+local ez=h:WaitForChild("petsFolder"):WaitForChild("Unique")
+local fa=b:WaitForChild("rEvents"):WaitForChild("equipPetEvent")
 
 local function fb()
-	for _, fc in ipairs(ez:GetChildren()) do
-		fa:FireServer("unequipPet", fc)
+	for _,fc in ipairs(ez:GetChildren())do
+		fa:FireServer("unequipPet",fc)
 	end
 end
 
-local function fd(fe, ff)
+local function fd(fe,ff)
 	fb()
-	local fg = 0
-	for _, fh in ipairs(ez:GetChildren()) do
-		if fh.Name == fe and fg < (ff or 8) then
-			fa:FireServer("equipPet", fh)
-			fg += 1
+	local fg=0
+	for _,fh in ipairs(ez:GetChildren())do
+		if fh.Name==fe and fg<(ff or 8) then
+			fa:FireServer("equipPet",fh)
+			fg+=1
 		end
 	end
 end
 
 local function fi(fj)
-	fj:AddButton("Equip Wild Wizards", function() fd("Wild Wizard") end)
-	fj:AddButton("Equip Mighty Monsters", function() fd("Mighty Monster") end)
+	fj:AddButton("Equip Wild Wizards",function() fd("Wild Wizard") end)
+	fj:AddButton("Equip Mighty Monsters",function() fd("Mighty Monster") end)
 end
 
 fi(de)
 fi(df)
 
-local fk, fl = nil, nil
-local fm, fn = 0, 0
+local fk,fl=nil,nil
+local fm,fn=0,0
 
 local function fo()
-	local fp = tick()
-	if fp - fm < 0.2 then return end
-	fm = fp
-	if fn == 0 then
+	local fp=tick()
+	if fp-fm<0.2 then return end
+	fm=fp
+	if fn==0 then
 		fd("Wild Wizard")
-		fn = 1
+		fn=1
 	else
 		fd("Mighty Monster")
-		fn = 0
+		fn=0
 	end
 end
 
 local function fq()
-	local fr = tick()
-	if fr - fm < 0.2 then return end
-	fm = fr
+	local fr=tick()
+	if fr-fm<0.2 then return end
+	fm=fr
 	fd("Mighty Monster")
 end
 
 local function fs(ft)
-	fl = ft
+	fl=ft
 	if fk then fk:Disconnect() end
-	fk = c.Heartbeat:Connect(function()
+	fk=c.Heartbeat:Connect(function()
 		if not fl then return end
-		if fl == "pack" then fo()
-		elseif fl == "hp" then fq() end
-		local fu = ex()
+		if fl=="pack" then fo()
+		elseif fl=="hp" then fq() end
+		local fu=ex()
 		if not fu then return end
-		for _, fv in ipairs(_G.tpListedPlayers) do
+		for _,fv in ipairs(_G.tpListedPlayers)do
 			local fw
-			for _, fx in ipairs(a:GetPlayers()) do
-				if fx.Name:lower() == fv:lower() then
-					fw = fx
+			for _,fx in ipairs(a:GetPlayers())do
+				if fx.Name:lower()==fv:lower() then
+					fw=fx
 					break
 				end
 			end
 			if fw and ef(fw) then
-				local fy = fu.CFrame
-				fu.CFrame = fw.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+				local fy=fu.CFrame
+				fu.CFrame=fw.Character.HumanoidRootPart.CFrame*CFrame.new(0,0,2)
 				eh()
-				local fz = fw.Character:FindFirstChildOfClass("Humanoid")
+				local fz=fw.Character:FindFirstChildOfClass("Humanoid")
 				if fz then
 					fz.Died:Once(function()
 						task.wait(0.01)
-						if fu and fu.Parent then fu.CFrame = fy end
+						if fu and fu.Parent then fu.CFrame=fy end
 					end)
 				end
 				break
@@ -758,104 +754,104 @@ local function fs(ft)
 end
 
 local function ga()
-	fl = nil
+	fl=nil
 	if fk then
 		fk:Disconnect()
-		fk = nil
+		fk=nil
 	end
 end
 
-de:AddToggle("Kill Tp + Pack Spam", function(gb)
+de:AddToggle("Kill Tp + Pack Spam",function(gb)
 	if gb then fs("pack")
-	elseif fl == "pack" then ga() end
+	elseif fl=="pack" then ga() end
 end)
 
-de:AddToggle("Kill Tp + Mighty Monster Spam", function(gc)
+de:AddToggle("Kill Tp + Mighty Monster Spam",function(gc)
 	if gc then fs("hp")
-	elseif fl == "hp" then ga() end
+	elseif fl=="hp" then ga() end
 end)
 
-de:AddToggle("Kill Tp", function(gd)
+de:AddToggle("Kill Tp",function(gd)
 	if gd then
-		fl = "none"
+		fl="none"
 		if fk then fk:Disconnect() end
-		fk = c.Heartbeat:Connect(function()
-			if fl ~= "none" then return end
-			local ge = ex()
+		fk=c.Heartbeat:Connect(function()
+			if fl~="none" then return end
+			local ge=ex()
 			if not ge then return end
-			for _, gf in ipairs(_G.tpListedPlayers) do
+			for _,gf in ipairs(_G.tpListedPlayers)do
 				local gg
-				for _, gh in ipairs(a:GetPlayers()) do
-					if gh.Name:lower() == gf:lower() then
-						gg = gh
+				for _,gh in ipairs(a:GetPlayers())do
+					if gh.Name:lower()==gf:lower() then
+						gg=gh
 						break
 					end
 				end
 				if gg and ef(gg) then
-					local gi = ge.CFrame
-					ge.CFrame = gg.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2)
+					local gi=ge.CFrame
+					ge.CFrame=gg.Character.HumanoidRootPart.CFrame*CFrame.new(0,0,2)
 					eh()
-					local gj = gg.Character:FindFirstChildOfClass("Humanoid")
+					local gj=gg.Character:FindFirstChildOfClass("Humanoid")
 					if gj then
 						gj.Died:Once(function()
 							task.wait(0.01)
-							if ge and ge.Parent then ge.CFrame = gi end
+							if ge and ge.Parent then ge.CFrame=gi end
 						end)
 					end
 					break
 				end
 			end
 		end)
-	elseif fl == "none" then
+	elseif fl=="none" then
 		ga()
 	end
 end)
 
-local gk = de:AddLabel("TpList: None")
-de:AddButton("Clear TpList", function()
-	_G.tpListedPlayers = {}
-	dk(dj.Tp, _G.tpListedPlayers)
+local gk=de:AddLabel("TpList: None")
+de:AddButton("Clear TpList",function()
+	_G.tpListedPlayers={}
+	dk(dj.a,_G.tpListedPlayers)
 end)
 
 task.spawn(function()
 	while true do
-		gk.Text = #_G.tpListedPlayers == 0 and "TpList: None" or "TpList: " .. table.concat(_G.tpListedPlayers, ", ")
+		gk.Text=#_G.tpListedPlayers==0 and "TpList: None" or "TpList: "..table.concat(_G.tpListedPlayers,", ")
 		task.wait(0.5)
 	end
 end)
 
-local gl, gm = nil, nil
-local gn, go = 0, 0
+local gl,gm=nil,nil
+local gn,go=0,0
 
 local function gp()
-	local gq = tick()
-	if gq - gn < 0.2 then return end
-	gn = gq
-	if go == 0 then
+	local gq=tick()
+	if gq-gn<0.2 then return end
+	gn=gq
+	if go==0 then
 		fd("Wild Wizard")
-		go = 1
+		go=1
 	else
 		fd("Mighty Monster")
-		go = 0
+		go=0
 	end
 end
 
 local function gr()
-	local gs = tick()
-	if gs - gn < 0.2 then return end
-	gn = gs
+	local gs=tick()
+	if gs-gn<0.2 then return end
+	gn=gs
 	fd("Mighty Monster")
 end
 
 local function gt(gu)
-	gm = gu
+	gm=gu
 	if gl then gl:Disconnect() end
-	gl = c.Heartbeat:Connect(function()
+	gl=c.Heartbeat:Connect(function()
 		if not gm then return end
-		if gm == "pack" then gp()
-		elseif gm == "hp" then gr() end
-		for _, gv in ipairs(a:GetPlayers()) do
-			if gv ~= h and dv(gv) then
+		if gm=="pack" then gp()
+		elseif gm=="hp" then gr() end
+		for _,gv in ipairs(a:GetPlayers())do
+			if gv~=h and dv(gv) then
 				ej(gv)
 			end
 		end
@@ -863,47 +859,47 @@ local function gt(gu)
 end
 
 local function gw()
-	gm = nil
+	gm=nil
 	if gl then
 		gl:Disconnect()
-		gl = nil
+		gl=nil
 	end
 end
 
-df:AddToggle("Kill + Pack Spam", function(gx)
+df:AddToggle("Kill + Pack Spam",function(gx)
 	if gx then gt("pack")
-	elseif gm == "pack" then gw() end
+	elseif gm=="pack" then gw() end
 end)
 
-df:AddToggle("Kill + Mighty Monster Spam", function(gy)
+df:AddToggle("Kill + Mighty Monster Spam",function(gy)
 	if gy then gt("hp")
-	elseif gm == "hp" then gw() end
+	elseif gm=="hp" then gw() end
 end)
 
-df:AddToggle("Kill", function(gz)
+df:AddToggle("Kill",function(gz)
 	if gz then gt("none")
-	elseif gm == "none" then gw() end
+	elseif gm=="none" then gw() end
 end)
 
-df:AddTextBox("Add To Watchlist", "Enter Clan Name", function(ha)
-	ha = ha:match("^%s*(.-)%s*$")
-	if ha == "" then return end
-	for _, hb in ipairs(_G.watchlistedPlayers) do
-		if hb:lower() == ha:lower() then return end
+df:AddTextBox("Add To Watchlist","Enter Clan Name",function(ha)
+	ha=ha:match("^%s*(.-)%s*$")
+	if ha=="" then return end
+	for _,hb in ipairs(_G.watchlistedPlayers)do
+		if hb:lower()==ha:lower() then return end
 	end
-	table.insert(_G.watchlistedPlayers, ha)
-	dk(dj.Watch, _G.watchlistedPlayers)
+	table.insert(_G.watchlistedPlayers,ha)
+	dk(dj.c,_G.watchlistedPlayers)
 end)
 
 local hc
-df:AddToggle("Kill Watchlist", function(hd)
-	_G.killWatchlisted = hd
+df:AddToggle("Kill Watchlist",function(hd)
+	_G.killWatchlisted=hd
 	if hd then
 		if not hc then
-			hc = c.Heartbeat:Connect(function()
+			hc=c.Heartbeat:Connect(function()
 				if not _G.killWatchlisted then return end
-				for _, he in ipairs(a:GetPlayers()) do
-					if he ~= h and dy(he) and ef(he) then
+				for _,he in ipairs(a:GetPlayers())do
+					if he~=h and dy(he) and ef(he) then
 						ej(he)
 					end
 				end
@@ -912,77 +908,77 @@ df:AddToggle("Kill Watchlist", function(hd)
 	else
 		if hc then
 			hc:Disconnect()
-			hc = nil
+			hc=nil
 		end
 	end
 end)
 
-local hf = df:AddLabel("Blacklist: None")
-df:AddButton("Clear Blacklist", function()
-	_G.blacklistedPlayers = {}
-	dk(dj.Black, _G.blacklistedPlayers)
+local hf=df:AddLabel("Blacklist: None")
+df:AddButton("Clear Blacklist",function()
+	_G.blacklistedPlayers={}
+	dk(dj.b,_G.blacklistedPlayers)
 end)
 
-local hg = df:AddLabel("Watchlist: None")
-df:AddButton("Clear Watchlist", function()
-	_G.watchlistedPlayers = {}
-	dk(dj.Watch, _G.watchlistedPlayers)
+local hg=df:AddLabel("Watchlist: None")
+df:AddButton("Clear Watchlist",function()
+	_G.watchlistedPlayers={}
+	dk(dj.c,_G.watchlistedPlayers)
 end)
 
 task.spawn(function()
 	while true do
-		hf.Text = #_G.blacklistedPlayers == 0 and "Blacklist: None" or "Blacklist: " .. table.concat(_G.blacklistedPlayers, ", ")
-		hg.Text = #_G.watchlistedPlayers == 0 and "Watchlist: None" or "Watchlist: " .. table.concat(_G.watchlistedPlayers, ", ")
+		hf.Text=#_G.blacklistedPlayers==0 and "Blacklist: None" or "Blacklist: "..table.concat(_G.blacklistedPlayers,", ")
+		hg.Text=#_G.watchlistedPlayers==0 and "Watchlist: None" or "Watchlist: "..table.concat(_G.watchlistedPlayers,", ")
 		task.wait(0.5)
 	end
 end)
 
-local hh = {
-	Target = nil,
-	UserId = nil,
-	Active = false,
-	CharConn = nil,
-	Loop = false
+local hh={
+	a=nil,
+	b=nil,
+	c=false,
+	d=nil,
+	e=false
 }
 
-getgenv().SpectateState = getgenv().SpectateState or {
-	SavedUserId = nil,
-	IsSpectating = false
+getgenv().SpectateState=getgenv().SpectateState or {
+	SavedUserId=nil,
+	IsSpectating=false
 }
 
 local function hi()
-	if hh.CharConn then
-		hh.CharConn:Disconnect()
-		hh.CharConn = nil
+	if hh.d then
+		hh.d:Disconnect()
+		hh.d=nil
 	end
-	hh.Loop = false
+	hh.e=false
 	if h.Character then
-		local hj = h.Character:FindFirstChildOfClass("Humanoid")
+		local hj=h.Character:FindFirstChildOfClass("Humanoid")
 		if hj then
-			i.CameraSubject = hj
-			i.CameraType = Enum.CameraType.Custom
+			i.CameraSubject=hj
+			i.CameraType=Enum.CameraType.Custom
 		end
 	end
-	hh.Active = false
-	hh.Target = nil
-	getgenv().SpectateState.IsSpectating = false
+	hh.c=false
+	hh.a=nil
+	getgenv().SpectateState.IsSpectating=false
 end
 
 local function hk()
-	if hh.Loop then
-		hh.Loop = false
+	if hh.e then
+		hh.e=false
 		task.wait(0.01)
 	end
-	hh.Loop = true
+	hh.e=true
 	task.spawn(function()
-		while hh.Loop do
+		while hh.e do
 			task.wait(0.01)
-			if hh.Active and hh.Target then
-				local hl = hh.Target.Character
+			if hh.c and hh.a then
+				local hl=hh.a.Character
 				if hl then
-					local hm = hl:FindFirstChildOfClass("Humanoid")
-					if hm and i.CameraSubject ~= hm then
-						i.CameraSubject = hm
+					local hm=hl:FindFirstChildOfClass("Humanoid")
+					if hm and i.CameraSubject~=hm then
+						i.CameraSubject=hm
 					end
 				end
 			else
@@ -994,21 +990,21 @@ end
 
 local function hn(ho)
 	if not ho then
-		if hh.UserId then
-			for _, hp in ipairs(a:GetPlayers()) do
-				if hp.UserId == hh.UserId then
-					ho = hp
-					hh.Target = ho
+		if hh.b then
+			for _,hp in ipairs(a:GetPlayers())do
+				if hp.UserId==hh.b then
+					ho=hp
+					hh.a=ho
 					break
 				end
 			end
 		end
 		if not ho and getgenv().SpectateState.SavedUserId then
-			for _, hq in ipairs(a:GetPlayers()) do
-				if hq.UserId == getgenv().SpectateState.SavedUserId then
-					ho = hq
-					hh.Target = ho
-					hh.UserId = hq.UserId
+			for _,hq in ipairs(a:GetPlayers())do
+				if hq.UserId==getgenv().SpectateState.SavedUserId then
+					ho=hq
+					hh.a=ho
+					hh.b=hq.UserId
 					break
 				end
 			end
@@ -1018,23 +1014,23 @@ local function hn(ho)
 			return
 		end
 	end
-	hh.UserId = ho.UserId
-	hh.Target = ho
-	getgenv().SpectateState.SavedUserId = ho.UserId
-	if hh.CharConn then
-		hh.CharConn:Disconnect()
-		hh.CharConn = nil
+	hh.b=ho.UserId
+	hh.a=ho
+	getgenv().SpectateState.SavedUserId=ho.UserId
+	if hh.d then
+		hh.d:Disconnect()
+		hh.d=nil
 	end
 	local function hr(hs)
-		if not hh.Active or hh.UserId ~= ho.UserId then return end
-		local ht = hs:WaitForChild("Humanoid", 3)
-		if ht and hh.Active and hh.UserId == ho.UserId then
-			i.CameraSubject = ht
+		if not hh.c or hh.b~=ho.UserId then return end
+		local ht=hs:WaitForChild("Humanoid",3)
+		if ht and hh.c and hh.b==ho.UserId then
+			i.CameraSubject=ht
 		end
 	end
 	if ho.Character then hr(ho.Character) end
-	hh.CharConn = ho.CharacterAdded:Connect(function(hu)
-		if hh.Active and hh.UserId == ho.UserId then
+	hh.d=ho.CharacterAdded:Connect(function(hu)
+		if hh.c and hh.b==ho.UserId then
 			hr(hu)
 		end
 	end)
@@ -1042,139 +1038,139 @@ end
 
 local function hv(hw)
 	if not hw then return end
-	hh.Active = true
-	getgenv().SpectateState.IsSpectating = true
-	hh.Target = hw
-	hh.UserId = hw.UserId
-	getgenv().SpectateState.SavedUserId = hw.UserId
+	hh.c=true
+	getgenv().SpectateState.IsSpectating=true
+	hh.a=hw
+	hh.b=hw.UserId
+	getgenv().SpectateState.SavedUserId=hw.UserId
 	hn(hw)
 	hk()
 end
 
-local hx = {}
+local hx={}
 local function hy()
-	for _, hz in ipairs(hx) do hz:Destroy() end
+	for _,hz in ipairs(hx)do hz:Destroy() end
 	table.clear(hx)
-	for _, ia in ipairs(a:GetPlayers()) do
-		if ia ~= h then
-			local ib = dg:AddButton(ia.DisplayName, function()
-				if hh.Active and hh.Target == ia then
+	for _,ia in ipairs(a:GetPlayers())do
+		if ia~=h then
+			local ib=dg:AddButton(ia.DisplayName,function()
+				if hh.c and hh.a==ia then
 					hi()
 				else
 					hv(ia)
 				end
 			end)
-			table.insert(hx, ib)
+			table.insert(hx,ib)
 		end
 	end
 end
 
 h.CharacterAdded:Connect(function(ic)
-	local id = ic:WaitForChild("Humanoid", 3)
+	local id=ic:WaitForChild("Humanoid",3)
 	task.wait(0.01)
 	if getgenv().SpectateState.IsSpectating then
-		hh.Active = true
+		hh.c=true
 		hn()
 		hk()
 	else
-		if id then i.CameraSubject = id end
+		if id then i.CameraSubject=id end
 	end
 end)
 
-dh:AddButton("Anti Lag", function()
-	local ie = workspace:FindFirstChildWhichIsA("Terrain")
+dh:AddButton("Anti Lag",function()
+	local ie=workspace:FindFirstChildWhichIsA("Terrain")
 	if ie then
-		ie.WaterWaveSize = 0
-		ie.WaterWaveSpeed = 0
-		ie.WaterReflectance = 0
-		ie.WaterTransparency = 1
-		g.ClockTime = 0
+		ie.WaterWaveSize=0
+		ie.WaterWaveSpeed=0
+		ie.WaterReflectance=0
+		ie.WaterTransparency=1
+		g.ClockTime=0
 	end
-	g.GlobalShadows = false
-	g.FogEnd = 9e9
-	g.FogStart = 9e9
-	pcall(function() settings().Rendering.QualityLevel = 1 end)
-	for _, ig in pairs(game:GetDescendants()) do
+	g.GlobalShadows=false
+	g.FogEnd=9e9
+	g.FogStart=9e9
+	pcall(function() settings().Rendering.QualityLevel=1 end)
+	for _,ig in pairs(game:GetDescendants())do
 		if ig:IsA("BasePart") then
-			ig.CastShadow = false
-			ig.Material = Enum.Material.Plastic
-			ig.Reflectance = 0
-			for _, ih in ipairs({"Back", "Bottom", "Front", "Left", "Right", "Top"}) do
-				ig[ih .. "Surface"] = Enum.SurfaceType.SmoothNoOutlines
+			ig.CastShadow=false
+			ig.Material=Enum.Material.Plastic
+			ig.Reflectance=0
+			for _,ih in ipairs({"Back","Bottom","Front","Left","Right","Top"})do
+				ig[ih.."Surface"]=Enum.SurfaceType.SmoothNoOutlines
 			end
 		elseif ig:IsA("Decal") then
-			ig.Transparency = 1
-			ig.Texture = ""
+			ig.Transparency=1
+			ig.Texture=""
 		elseif ig:IsA("ParticleEmitter") or ig:IsA("Trail") then
-			ig.Enabled = false
+			ig.Enabled=false
 		end
 	end
-	for _, ii in pairs(g:GetDescendants()) do
-		if ii:IsA("PostEffect") then ii.Enabled = false end
+	for _,ii in pairs(g:GetDescendants())do
+		if ii:IsA("PostEffect") then ii.Enabled=false end
 	end
 	if _G.antiLagConn then _G.antiLagConn:Disconnect() end
-	_G.antiLagConn = workspace.DescendantAdded:Connect(function(ij)
+	_G.antiLagConn=workspace.DescendantAdded:Connect(function(ij)
 		task.spawn(function()
 			if ij:IsA("ForceField") or ij:IsA("Sparkles") or ij:IsA("Smoke") or ij:IsA("Fire") or ij:IsA("Beam") then
 				c.Heartbeat:Wait()
 				ij:Destroy()
 			elseif ij:IsA("BasePart") then
-				ij.CastShadow = false
+				ij.CastShadow=false
 			end
 		end)
 	end)
 end)
 
-local ik = k("Part", {
-	Name = "WalkOnWaterPart",
-	Size = Vector3.new(4, 0.1, 4),
-	Transparency = 1,
-	Anchored = true,
-	CanCollide = false,
-	CanTouch = false,
-	CanQuery = false,
-	Parent = workspace
+local ik=k("Part",{
+	Name="WalkOnWaterPart",
+	Size=Vector3.new(4,0.1,4),
+	Transparency=1,
+	Anchored=true,
+	CanCollide=false,
+	CanTouch=false,
+	CanQuery=false,
+	Parent=workspace
 })
 
 local il
-dh:AddToggle("Walk On Water", function(im)
+dh:AddToggle("Walk On Water",function(im)
 	if il then
 		il:Disconnect()
-		il = nil
+		il=nil
 	end
-	ik.CanCollide = im
+	ik.CanCollide=im
 	if im then
-		il = c.RenderStepped:Connect(function()
-			local io = h.Character and h.Character:FindFirstChild("HumanoidRootPart")
+		il=c.RenderStepped:Connect(function()
+			local io=h.Character and h.Character:FindFirstChild("HumanoidRootPart")
 			if io then
-				ik.CFrame = CFrame.new(io.Position.X, -9.5, io.Position.Z)
+				ik.CFrame=CFrame.new(io.Position.X,-9.5,io.Position.Z)
 			end
 		end)
 	else
-		ik.CanCollide = false
-		ik.Position = Vector3.new(0, -10000, 0)
+		ik.CanCollide=false
+		ik.Position=Vector3.new(0,-10000,0)
 	end
 end)
 
-local ip = nil
-local iq = di:AddLabel("Name: N/A")
-local ir = di:AddLabel("Strength: N/A")
-local is_ = di:AddLabel("Durability: N/A")
+local ip=nil
+local iq=di:AddLabel("Name: N/A")
+local ir=di:AddLabel("Strength: N/A")
+local is_=di:AddLabel("Durability: N/A")
 
 local function it(iu)
 	if not iu then return end
-	iq.Text = "Name: " .. iu.DisplayName
+	iq.Text="Name: "..iu.DisplayName
 	if not iu:FindFirstChild("leaderstats") then return end
-	local function iv(iw, ix, iy)
-		local iz = iu.leaderstats:FindFirstChild(iy) or iu:FindFirstChild(iy)
+	local function iv(iw,ix,iy)
+		local iz=iu.leaderstats:FindFirstChild(iy) or iu:FindFirstChild(iy)
 		if iz then
-			iw.Text = string.format("%s: %s (%s)", ix, z(iz.Value), ab(iz.Value))
+			iw.Text=string.format("%s: %s (%s)",ix,z(iz.Value),ab(iz.Value))
 		else
-			iw.Text = ix .. ": 0 (0)"
+			iw.Text=ix..": 0 (0)"
 		end
 	end
-	iv(ir, "Strength", "Strength")
-	iv(is_, "Durability", "Durability")
+	iv(ir,"Strength","Strength")
+	iv(is_,"Durability","Durability")
 end
 
 task.spawn(function()
@@ -1184,37 +1180,37 @@ task.spawn(function()
 	end
 end)
 
-local ja = di:AddLabel("Enemy Health: ")
-local jb = di:AddLabel("Enemy Damage: ")
-local jc = di:AddLabel("Your Health: ")
-local jd = di:AddLabel("Your Damage: ")
-local je = di:AddLabel("Hits To Kill: ")
+local ja=di:AddLabel("Enemy Health: ")
+local jb=di:AddLabel("Enemy Damage: ")
+local jc=di:AddLabel("Your Health: ")
+local jd=di:AddLabel("Your Damage: ")
+local je=di:AddLabel("Hits To Kill: ")
 
 local function jf(jg)
 	if not jg then
-		ja.Text = "Enemy Health: "
-		jb.Text = "Enemy Damage: "
-		jc.Text = "Your Health: "
-		jd.Text = "Your Damage: "
-		je.Text = "Hits To Kill: "
+		ja.Text="Enemy Health: "
+		jb.Text="Enemy Damage: "
+		jc.Text="Your Health: "
+		jd.Text="Your Damage: "
+		je.Text="Hits To Kill: "
 		return
 	end
-	local jh = el(jg)
-	local ji = er(jg)
-	local jj = el(h)
-	local jk = er(h)
-	local jl = "inf"
-	if jk > 0 then
-		local jm = math.ceil(jh / jk)
-		if jm > 200 then jl = "inf"
-		elseif jm < 1 then jl = "instant"
-		else jl = tostring(jm) end
+	local jh=el(jg)
+	local ji=er(jg)
+	local jj=el(h)
+	local jk=er(h)
+	local jl="inf"
+	if jk>0 then
+		local jm=math.ceil(jh/jk)
+		if jm>200 then jl="inf"
+		elseif jm<1 then jl="instant"
+		else jl=tostring(jm) end
 	end
-	ja.Text = string.format("Enemy Health: %s (%s)", z(jh), ab(jh))
-	jb.Text = string.format("Enemy Damage: %s (%s)", z(ji), ab(ji))
-	jc.Text = string.format("Your Health: %s (%s)", z(jj), ab(jj))
-	jd.Text = string.format("Your Damage: %s (%s)", z(jk), ab(jk))
-	je.Text = "Hits To Kill: " .. jl
+	ja.Text=string.format("Enemy Health: %s (%s)",z(jh),ab(jh))
+	jb.Text=string.format("Enemy Damage: %s (%s)",z(ji),ab(ji))
+	jc.Text=string.format("Your Health: %s (%s)",z(jj),ab(jj))
+	jd.Text=string.format("Your Damage: %s (%s)",z(jk),ab(jk))
+	je.Text="Hits To Kill: "..jl
 end
 
 task.spawn(function()
@@ -1224,48 +1220,48 @@ task.spawn(function()
 	end
 end)
 
-local jn, jo, jp = {}, {}, {}
+local jn,jo,jp={},{},{}
 
 local function jq()
-	for _, jr in ipairs(jn) do jr:Destroy() end
+	for _,jr in ipairs(jn)do jr:Destroy() end
 	table.clear(jn)
-	for _, js in ipairs(a:GetPlayers()) do
-		if js ~= h then
-			local jt = de:AddButton(js.DisplayName, function()
+	for _,js in ipairs(a:GetPlayers())do
+		if js~=h then
+			local jt=de:AddButton(js.DisplayName,function()
 				if not ds(js) then
-					table.insert(_G.tpListedPlayers, js.Name)
-					dk(dj.Tp, _G.tpListedPlayers)
+					table.insert(_G.tpListedPlayers,js.Name)
+					dk(dj.a,_G.tpListedPlayers)
 				end
-			end, true)
-			table.insert(jn, jt)
+			end,true)
+			table.insert(jn,jt)
 		end
 	end
 end
 
 local function ju()
-	for _, jv in ipairs(jo) do jv:Destroy() end
+	for _,jv in ipairs(jo)do jv:Destroy() end
 	table.clear(jo)
-	for _, jw in ipairs(a:GetPlayers()) do
-		if jw ~= h then
-			local jx = df:AddButton(jw.DisplayName, function()
+	for _,jw in ipairs(a:GetPlayers())do
+		if jw~=h then
+			local jx=df:AddButton(jw.DisplayName,function()
 				if not dv(jw) then
-					table.insert(_G.blacklistedPlayers, jw.Name)
-					dk(dj.Black, _G.blacklistedPlayers)
+					table.insert(_G.blacklistedPlayers,jw.Name)
+					dk(dj.b,_G.blacklistedPlayers)
 				end
-			end, true)
-			table.insert(jo, jx)
+			end,true)
+			table.insert(jo,jx)
 		end
 	end
 end
 
 local function jy()
-	for _, jz in ipairs(jp) do jz:Destroy() end
+	for _,jz in ipairs(jp)do jz:Destroy() end
 	table.clear(jp)
-	for _, ka in ipairs(a:GetPlayers()) do
-		local kb = di:AddButton(ka.DisplayName, function()
-			ip = ka
-		end, true)
-		table.insert(jp, kb)
+	for _,ka in ipairs(a:GetPlayers())do
+		local kb=di:AddButton(ka.DisplayName,function()
+			ip=ka
+		end,true)
+		table.insert(jp,kb)
 	end
 end
 
@@ -1275,7 +1271,7 @@ hy()
 jy()
 
 h.CharacterAdded:Connect(function(kc)
-	kc:WaitForChild("HumanoidRootPart", 5)
+	kc:WaitForChild("HumanoidRootPart",5)
 end)
 
 a.PlayerAdded:Connect(function(kd)
@@ -1284,10 +1280,10 @@ a.PlayerAdded:Connect(function(kd)
 	ju()
 	hy()
 	jy()
-	if getgenv().SpectateState.IsSpectating and getgenv().SpectateState.SavedUserId == kd.UserId then
-		hh.Active = true
-		hh.Target = kd
-		hh.UserId = kd.UserId
+	if getgenv().SpectateState.IsSpectating and getgenv().SpectateState.SavedUserId==kd.UserId then
+		hh.c=true
+		hh.a=kd
+		hh.b=kd.UserId
 		hn(kd)
 		hk()
 	end
@@ -1295,13 +1291,13 @@ end)
 
 a.PlayerRemoving:Connect(function(ke)
 	task.wait(0.1)
-	if ke.UserId == hh.UserId and hh.Active then
+	if ke.UserId==hh.b and hh.c then
 		hi()
-		hh.Target = nil
-		hh.CharConn = nil
+		hh.a=nil
+		hh.d=nil
 		if h.Character then
-			local kf = h.Character:FindFirstChildOfClass("Humanoid")
-			if kf then i.CameraSubject = kf end
+			local kf=h.Character:FindFirstChildOfClass("Humanoid")
+			if kf then i.CameraSubject=kf end
 		end
 	end
 	jq()
